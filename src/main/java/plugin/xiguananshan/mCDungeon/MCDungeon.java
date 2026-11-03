@@ -1,0 +1,35 @@
+package plugin.xiguananshan.mCDungeon;
+
+import org.bukkit.plugin.java.JavaPlugin;
+import plugin.xiguananshan.mCDungeon.command.GenerateTestCommand;
+import plugin.xiguananshan.mCDungeon.command.TestCommand;
+import plugin.xiguananshan.mCDungeon.command.TestGunCommand;
+import plugin.xiguananshan.mCDungeon.listeners.*;
+import plugin.xiguananshan.mCDungeon.ticks.*;
+
+public final class MCDungeon extends JavaPlugin {
+
+    @Override
+    public void onEnable() {
+        getServer().getPluginManager().registerEvents(new EntityDamageEventListener(),this);
+        getServer().getPluginManager().registerEvents(new EntityDropExpEventListener(),this);
+        getServer().getPluginManager().registerEvents(new PlayerUseItemEventListener(),this);
+        getServer().getPluginManager().registerEvents(new GunShootEventListener(),this);
+        getServer().getPluginManager().registerEvents(new PlayerPickItemEventListener(),this);
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(),this);
+        getCommand("test").setExecutor(new TestCommand());
+        getCommand("test_gun").setExecutor(new TestGunCommand());
+        getCommand("generate").setExecutor(new GenerateTestCommand());
+        new ElementTypeTimer().runTaskTimer(this,0,1);
+        new FreezeTicksTimer().runTaskTimer(this,0,1);
+        new GrassTickTimer().runTaskTimer(this,0,1);
+        new BurnTickTImer().runTaskTimer(this,0,1);
+        new PhysicAttackTicksTimer().runTaskTimer(this,0,1);
+        // Plugin startup logic
+    }
+
+    @Override
+    public void onDisable() {
+        // Plugin shutdown logic
+    }
+}

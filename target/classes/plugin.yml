@@ -1,0 +1,12 @@
+name: MCDungeon
+version: '1.0-SNAPSHOT'
+
+main: plugin.xiguananshan.mCDungeon.MCDungeon
+api-version: '26.1'
+commands:
+  test:
+    description: A test command.
+  test_gun:
+    description: A test command.
+  generate:
+    description: A test command.
