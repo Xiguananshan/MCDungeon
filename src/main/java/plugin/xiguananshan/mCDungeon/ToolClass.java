@@ -105,7 +105,7 @@ public class ToolClass {
         pdc.set(fromNamespaceKey("sword"),PersistentDataType.INTEGER,160);
         pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,600);
         meta.setDisplayName(ChatColor.GOLD + "狂风怒号之刃");
-        meta.setLore(List.of(ChatColor.YELLOW + "一把汲取了浓烈空气元素力量的剑，见证了风在星球上的千年历史，攻击敌人造成160点伤害",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.AIR)) + typeNameMap.get(DamageType.AIR),ChatColor.YELLOW + "按住Shift+右键可以释放这把剑的技能"));
+        meta.setLore(List.of(ChatColor.YELLOW + "一把汲取了浓烈空气元素力量的剑，见证了风在星球上的千年历史，攻击敌人造成160点伤害",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.AIR)) + typeNameMap.get(DamageType.AIR),ChatColor.YELLOW + "按住Shift+右键可以释放这把剑的技能",ChatColor.YELLOW + "技能：在上方生成一个持续10秒的风洞，风洞会不断吸收周围5格内的敌人，并对周围2格内的敌人每秒造成40点空气元素伤害"));
         WindSword.setItemMeta(meta);
     }
     public static ItemStack fromItem(ItemStack stack){

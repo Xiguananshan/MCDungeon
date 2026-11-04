@@ -12,6 +12,7 @@ plugin\xiguananshan\mCDungeon\ticks\DamageTextTick.class
 plugin\xiguananshan\mCDungeon\ticks\PlayerGunService.class
 plugin\xiguananshan\mCDungeon\ticks\FreezeTicksTimer$1.class
 plugin\xiguananshan\mCDungeon\MCDungeon.class
+plugin\xiguananshan\mCDungeon\ticks\WindHoleService.class
 plugin\xiguananshan\mCDungeon\ToolClass.class
 plugin\xiguananshan\mCDungeon\ticks\PhysicAttackTicksTimer.class
 plugin\xiguananshan\mCDungeon\ToolClass$2.class

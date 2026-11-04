@@ -27,7 +27,7 @@ public class TestCommand implements CommandExecutor {
                             ToolClass.FromMobItemstack(Material.LEATHER_BOOTS),
                             new ItemStack(Material.AIR)
                     ),
-                    false,
+                    true,
                     10000,
                     Zombie.class
             );

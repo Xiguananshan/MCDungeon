@@ -2,7 +2,9 @@ package plugin.xiguananshan.mCDungeon.listeners;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -15,6 +17,7 @@ import org.bukkit.persistence.PersistentDataType;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerSkillService;
+import plugin.xiguananshan.mCDungeon.ticks.WindHoleService;
 
 import java.util.List;
 
@@ -55,6 +58,16 @@ public class PlayerUseItemEventListener implements Listener {
 
                     if(service!=null){
                         if(!service.isCold(id)){
+                            if(pdc.has(ToolClass.fromNamespaceKey("wind_sword"))){
+                                ArmorStand armorStand = e.getPlayer().getWorld().spawn(e.getPlayer().getLocation().clone().add(0,3,0), ArmorStand.class);
+                                armorStand.setVisible(false);
+                                armorStand.setInvulnerable(true);
+                                assert armorStand.getEquipment()!=null;
+                                armorStand.getEquipment().setHelmet(new ItemStack(Material.BLACK_CONCRETE));
+                                armorStand.setGravity(false);
+                                new WindHoleService(armorStand).runTaskTimer(ToolClass.PLUGIN,0,1);
+                                e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_GENERIC_EXPLODE,3,1);
+                            }
                             service.addCold(id,skill);
                         }
                     }
