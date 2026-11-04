@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import plugin.xiguananshan.mCDungeon.ToolClass;
@@ -32,6 +33,28 @@ public class EntityDamageEventListener implements Listener {
                 Integer defence = ToolClass.defence.get(p.getUniqueId());
                 e.setDamage(1d-0.6d*2/Math.PI*Math.atan(1/200f*defence));
                 return;
+            }
+            if(e.getDamageSource().getCausingEntity() != null){
+                if(e.getDamageSource().getCausingEntity() instanceof Player p){
+                    ItemStack stack = p.getInventory().getItemInMainHand();
+                    ItemMeta meta = stack.getItemMeta();
+                    if(meta != null){
+                        PersistentDataContainer pdc1 = meta.getPersistentDataContainer();
+                        if(pdc1.has(ToolClass.fromNamespaceKey("sword"),PersistentDataType.INTEGER)){
+                            Integer k = pdc1.get(ToolClass.fromNamespaceKey("sword"),PersistentDataType.INTEGER);
+                            assert k!=null;
+                            if(pdc1.has(ToolClass.fromNamespaceKey("element"),PersistentDataType.STRING)){
+                                String ele = pdc1.get(ToolClass.fromNamespaceKey("element"),PersistentDataType.STRING);
+                                assert ele!=null;
+                                try{
+                                    DamageType type = DamageType.valueOf(ele);
+                                    ToolClass.typeMap.put(l.getUniqueId(),type);
+                                    e.setDamage(k);
+                                }catch (Exception ignore){}
+                            }
+                        }
+                    }
+                }
             }
             if(pdc.has(ToolClass.fromNamespaceKey("entity"))){
 

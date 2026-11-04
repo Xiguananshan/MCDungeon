@@ -4,6 +4,7 @@ import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -21,9 +22,7 @@ import plugin.xiguananshan.mCDungeon.data.StorageManager;
 import plugin.xiguananshan.mCDungeon.enums.CrossStructureType;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 import plugin.xiguananshan.mCDungeon.events.GunShotEvent;
-import plugin.xiguananshan.mCDungeon.ticks.DamageTextTick;
-import plugin.xiguananshan.mCDungeon.ticks.PlayerRockDefenceTickTimer;
-import plugin.xiguananshan.mCDungeon.ticks.SeedLightningTickTimer;
+import plugin.xiguananshan.mCDungeon.ticks.*;
 
 import javax.naming.Name;
 import java.awt.*;
@@ -35,6 +34,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ToolClass {
     public static MCDungeon PLUGIN = MCDungeon.getPlugin(MCDungeon.class);
     public static ItemStack DefaultGun = new ItemStack(Material.GOLDEN_HOE);
+    public static ItemStack WindSword = new ItemStack(Material.DIAMOND_SWORD);
     public static Map<UUID,Long> Shoot_timer = new HashMap<>();
     public static Map<UUID,DamageType> typeMap = new HashMap<>();
     public static Map<UUID, HashSet<DamageType>> entity_type = new HashMap<>();
@@ -44,7 +44,10 @@ public class ToolClass {
     public static Map<UUID,Integer> grass_burn = new HashMap<>();
     public static Map<UUID,Integer> physic_attack = new HashMap<>();
     public static Map<UUID,Integer> defence = new HashMap<>();
+    public static Map<UUID, PlayerGunService> gunServiceMap = new HashMap<>();
     public static Map<UUID, PlayerRockDefenceTickTimer> rockDefenceTickTimerMap = new HashMap<>();
+    public static Map<UUID, PlayerSkillService> skillServiceMap = new HashMap<>();
+    public static Integer max_item_id = 0;
     public static List<UUID> game_players = new ArrayList<>();
     public static Structure CROSS_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("cross_north"));
     public static Structure CROSS_ROOM_1_2 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("cross_east"));
@@ -84,8 +87,35 @@ public class ToolClass {
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(fromNamespaceKey("normal_gun"),PersistentDataType.BOOLEAN,true);
         pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"LIGHTNING");
-        meta.setLore(List.of(ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.LIGHTNING)) + typeNameMap.get(DamageType.LIGHTNING)) );
+        pdc.set(fromNamespaceKey("count"),PersistentDataType.INTEGER,10);
+        pdc.set(fromNamespaceKey("max_count"),PersistentDataType.INTEGER,10);
+        String ss = ChatColor.YELLOW + "剩余弹药：" + ChatColor.GREEN + 10 + "/10";
+        meta.setDisplayName(ChatColor.WHITE + "普通枪");
+        meta.setLore(List.of(ChatColor.YELLOW + "只是一把再普通不过的枪，射击敌人造成35伤害",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.LIGHTNING)) + typeNameMap.get(DamageType.LIGHTNING),ss,ChatColor.YELLOW + "左键换弹") );
         DefaultGun.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = WindSword.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("wind_sword"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"AIR");
+        pdc.set(fromNamespaceKey("sword"),PersistentDataType.INTEGER,160);
+        pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,600);
+        meta.setDisplayName(ChatColor.GOLD + "狂风怒号之刃");
+        meta.setLore(List.of(ChatColor.YELLOW + "一把汲取了浓烈空气元素力量的剑，见证了风在星球上的千年历史，攻击敌人造成160点伤害",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.AIR)) + typeNameMap.get(DamageType.AIR),ChatColor.YELLOW + "按住Shift+右键可以释放这把剑的技能"));
+        WindSword.setItemMeta(meta);
+    }
+    public static ItemStack fromItem(ItemStack stack){
+        ItemStack s = stack.clone();
+        ItemMeta meta = s.getItemMeta();
+        assert meta != null;
+        meta.getPersistentDataContainer().set(fromNamespaceKey("id"),PersistentDataType.INTEGER,max_item_id);
+        max_item_id++;
+        s.setItemMeta(meta);
+        return s;
     }
     public static void SummonEntity(World world, Location location, List<ItemStack> equipments,boolean ai,int health,Class<? extends Mob> type){
         Mob entity = world.spawn(location, type);

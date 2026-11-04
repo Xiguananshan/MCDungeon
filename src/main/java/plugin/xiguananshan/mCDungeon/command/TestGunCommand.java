@@ -11,7 +11,8 @@ public class TestGunCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String label, String @NonNull [] args) {
         if(sender instanceof Player p){
-            p.getInventory().addItem(ToolClass.DefaultGun);
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.DefaultGun));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.WindSword));
         }
         return false;
     }

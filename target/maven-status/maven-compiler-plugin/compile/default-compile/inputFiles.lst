@@ -12,6 +12,7 @@ C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeo
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\EntityDamageEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\EntityDropExpEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\GunShootEventListener.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerChangeMainHandItemEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerJoinListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerPickItemEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerUseItemEventListener.java
@@ -22,7 +23,9 @@ C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeo
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\FreezeTicksTimer.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\GrassTickTimer.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PhysicAttackTicksTimer.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PlayerGunService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PlayerRockDefenceTickTimer.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PlayerSkillService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\RockLifeTickTimer.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\SeedLightningTickTimer.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ToolClass.java
