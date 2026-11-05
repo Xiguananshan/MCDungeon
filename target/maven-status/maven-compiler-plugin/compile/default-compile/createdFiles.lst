@@ -1,4 +1,5 @@
 plugin\xiguananshan\mCDungeon\listeners\PlayerChangeMainHandItemEventListener.class
+plugin\xiguananshan\mCDungeon\ticks\RockExportService.class
 plugin\xiguananshan\mCDungeon\command\TestCommand.class
 plugin\xiguananshan\mCDungeon\data\StorageManager.class
 plugin\xiguananshan\mCDungeon\data\CrossData.class
@@ -6,6 +7,7 @@ plugin\xiguananshan\mCDungeon\ticks\RockLifeTickTimer.class
 plugin\xiguananshan\mCDungeon\ticks\SeedLightningTickTimer.class
 plugin\xiguananshan\mCDungeon\data\CornerData$Corner.class
 plugin\xiguananshan\mCDungeon\listeners\EntityDamageEventListener$1.class
+plugin\xiguananshan\mCDungeon\ticks\StoneService.class
 plugin\xiguananshan\mCDungeon\listeners\GunShootEventListener.class
 plugin\xiguananshan\mCDungeon\listeners\PlayerJoinListener.class
 plugin\xiguananshan\mCDungeon\ticks\DamageTextTick.class
@@ -21,6 +23,7 @@ plugin\xiguananshan\mCDungeon\ChatColorUtil.class
 plugin\xiguananshan\mCDungeon\ticks\FreezeTicksTimer.class
 plugin\xiguananshan\mCDungeon\events\GunShotEvent.class
 plugin\xiguananshan\mCDungeon\data\CornerData.class
+plugin\xiguananshan\mCDungeon\ticks\StoneSkillService.class
 plugin\xiguananshan\mCDungeon\ticks\GrassTickTimer.class
 plugin\xiguananshan\mCDungeon\ticks\PlayerSkillService.class
 plugin\xiguananshan\mCDungeon\listeners\EntityDropExpEventListener.class

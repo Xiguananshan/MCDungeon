@@ -13,6 +13,7 @@ public class TestGunCommand implements CommandExecutor {
         if(sender instanceof Player p){
             p.getInventory().addItem(ToolClass.fromItem(ToolClass.DefaultGun));
             p.getInventory().addItem(ToolClass.fromItem(ToolClass.WindSword));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.StoneBook));
         }
         return false;
     }

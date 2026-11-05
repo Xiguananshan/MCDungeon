@@ -1,10 +1,9 @@
 package plugin.xiguananshan.mCDungeon.listeners;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -17,6 +16,8 @@ import org.bukkit.persistence.PersistentDataType;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerSkillService;
+import plugin.xiguananshan.mCDungeon.ticks.StoneService;
+import plugin.xiguananshan.mCDungeon.ticks.StoneSkillService;
 import plugin.xiguananshan.mCDungeon.ticks.WindHoleService;
 
 import java.util.List;
@@ -59,7 +60,7 @@ public class PlayerUseItemEventListener implements Listener {
                     if(service!=null){
                         if(!service.isCold(id)){
                             if(pdc.has(ToolClass.fromNamespaceKey("wind_sword"))){
-                                ArmorStand armorStand = e.getPlayer().getWorld().spawn(e.getPlayer().getLocation().clone().add(0,3,0), ArmorStand.class);
+                                ArmorStand armorStand = e.getPlayer().getWorld().spawn(e.getPlayer().getLocation(), ArmorStand.class);
                                 armorStand.setVisible(false);
                                 armorStand.setInvulnerable(true);
                                 assert armorStand.getEquipment()!=null;
@@ -68,10 +69,34 @@ public class PlayerUseItemEventListener implements Listener {
                                 new WindHoleService(armorStand).runTaskTimer(ToolClass.PLUGIN,0,1);
                                 e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_GENERIC_EXPLODE,3,1);
                             }
+                            if(pdc.has(ToolClass.fromNamespaceKey("stone_book"))){
+                                FallingBlock block = e.getPlayer().getWorld().spawnFallingBlock(e.getPlayer().getLocation().clone().add(0,3,0), Bukkit.createBlockData(Material.GOLD_BLOCK));
+                                StoneSkillService stoneSkillService = new StoneSkillService(block);
+                                stoneSkillService.runTaskTimer(ToolClass.PLUGIN,0,1);
+                                e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.BLOCK_ANVIL_PLACE,3,1);
+                            }
                             service.addCold(id,skill);
+                            return;
                         }
                     }
                 }
+            }
+            if(pdc.has(ToolClass.fromNamespaceKey("stone_book"))){
+                if(!ToolClass.rock_book_tick.containsKey(e.getPlayer().getUniqueId())){
+                    Item item = e.getPlayer().getWorld().dropItem(e.getPlayer().getEyeLocation(),new ItemStack(Material.STONE));
+                    new StoneService(item,e.getPlayer().getEyeLocation().getDirection().normalize().multiply(4)).runTaskTimer(ToolClass.PLUGIN,0,1);
+                    e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_ITEM_PICKUP,1,1);
+                    ToolClass.rock_book_tick.put(e.getPlayer().getUniqueId(),System.currentTimeMillis());
+                }else{
+                    Long now = System.currentTimeMillis();
+                    if(now - ToolClass.rock_book_tick.get(e.getPlayer().getUniqueId()) >= 400){
+                        Item item = e.getPlayer().getWorld().dropItem(e.getPlayer().getEyeLocation(),new ItemStack(Material.STONE));
+                        new StoneService(item,e.getPlayer().getEyeLocation().getDirection().normalize().multiply(3)).runTaskTimer(ToolClass.PLUGIN,0,1);
+                        e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_ITEM_PICKUP,1,1);
+                        ToolClass.rock_book_tick.put(e.getPlayer().getUniqueId(),System.currentTimeMillis());
+                    }
+                }
+
             }
             if(pdc.has(ToolClass.fromNamespaceKey("normal_gun")) && pdc.has(ToolClass.fromNamespaceKey("count"))){
                 Integer k = pdc.get(ToolClass.fromNamespaceKey("count"),PersistentDataType.INTEGER);

@@ -38,8 +38,8 @@ public class WindHoleService extends BukkitRunnable {
         display.setRotation(yaw, display.getLocation().getPitch());
         display.setHeadPose(new EulerAngle(0, Math.toRadians(yaw), 0));
         World world = display.getWorld();
-        for(double a = 0;a<=Math.PI;a+=0.1){
-            for(double b = 0;b<=2*Math.PI;b+=0.1){
+        for(double a = 0;a<=Math.PI;a+=0.2){
+            for(double b = 0;b<=2*Math.PI;b+=0.2){
                 Location goal = core.clone().add(2*Math.sin(a)*Math.cos(b),2*Math.sin(a)*Math.sin(b),2*Math.cos(a));
                 world.spawnParticle(Particle.DUST,goal,1,new Particle.DustOptions(ToolClass.typeColorMap.get(DamageType.AIR),1));
             }

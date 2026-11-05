@@ -35,6 +35,7 @@ public class ToolClass {
     public static MCDungeon PLUGIN = MCDungeon.getPlugin(MCDungeon.class);
     public static ItemStack DefaultGun = new ItemStack(Material.GOLDEN_HOE);
     public static ItemStack WindSword = new ItemStack(Material.DIAMOND_SWORD);
+    public static ItemStack StoneBook = new ItemStack(Material.BOOK);
     public static Map<UUID,Long> Shoot_timer = new HashMap<>();
     public static Map<UUID,DamageType> typeMap = new HashMap<>();
     public static Map<UUID, HashSet<DamageType>> entity_type = new HashMap<>();
@@ -47,6 +48,7 @@ public class ToolClass {
     public static Map<UUID, PlayerGunService> gunServiceMap = new HashMap<>();
     public static Map<UUID, PlayerRockDefenceTickTimer> rockDefenceTickTimerMap = new HashMap<>();
     public static Map<UUID, PlayerSkillService> skillServiceMap = new HashMap<>();
+    public static Map<UUID,Long>  rock_book_tick = new HashMap<>();
     public static Integer max_item_id = 0;
     public static List<UUID> game_players = new ArrayList<>();
     public static Structure CROSS_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("cross_north"));
@@ -105,8 +107,21 @@ public class ToolClass {
         pdc.set(fromNamespaceKey("sword"),PersistentDataType.INTEGER,160);
         pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,600);
         meta.setDisplayName(ChatColor.GOLD + "狂风怒号之刃");
-        meta.setLore(List.of(ChatColor.YELLOW + "一把汲取了浓烈空气元素力量的剑，见证了风在星球上的千年历史，攻击敌人造成160点伤害",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.AIR)) + typeNameMap.get(DamageType.AIR),ChatColor.YELLOW + "按住Shift+右键可以释放这把剑的技能",ChatColor.YELLOW + "技能：在上方生成一个持续10秒的风洞，风洞会不断吸收周围5格内的敌人，并对周围2格内的敌人每秒造成40点空气元素伤害"));
+        meta.setLore(List.of(ChatColor.YELLOW + "一把汲取了浓烈空气元素力量的剑，见证了风在星球上的千年历史，攻击敌人造成160点伤害",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.AIR)) + typeNameMap.get(DamageType.AIR),ChatColor.YELLOW + "按住Shift+右键可以释放这把剑的技能",ChatColor.YELLOW + "技能：在上方生成一个持续10秒的风洞，风洞会不断吸收周围5格内的敌人，并对周围2格内的敌人每秒造成2次40点空气元素伤害"));
         WindSword.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = StoneBook.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("stone_book"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"ROCK");
+        pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,300);
+        meta.setDisplayName(ChatColor.GOLD + "粉骨碎身之法");
+        meta.setLore(List.of(ChatColor.YELLOW + "一本上面写着《岩国通史》的书，后来因为其拥有者得到了岩的祝福而变成了强力的法器",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.ROCK)) + typeNameMap.get(DamageType.ROCK),ChatColor.YELLOW + "按住Shift+右键可以释放这把剑的技能",ChatColor.YELLOW + "技能：从上方砸下一块石头，落地时给周围3*3范围内的敌人造成700岩元素伤害，落下的石头在接下来8秒内进行4次岩共鸣，每次共鸣对周围4格范围内的敌人造成100点岩元素伤害"));
+        StoneBook.setItemMeta(meta);
     }
     public static ItemStack fromItem(ItemStack stack){
         ItemStack s = stack.clone();
