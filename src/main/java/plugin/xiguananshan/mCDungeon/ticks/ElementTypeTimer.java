@@ -1,16 +1,20 @@
 package plugin.xiguananshan.mCDungeon.ticks;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
-import plugin.xiguananshan.mCDungeon.ChatColorUtil;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -25,21 +29,26 @@ public class ElementTypeTimer extends BukkitRunnable {
                 if(ToolClass.entity_type.containsKey(entity.getUniqueId())){
                     HashSet<DamageType> set = ToolClass.entity_type.get(entity.getUniqueId());
                     if(!set.isEmpty()){
-                        String next = ChatColor.GRAY + "(";
-                        for(int i = 0;i< DamageType.values().length;i++){
-                            DamageType t = DamageType.values()[i];
-                            if(set.contains(t)) {
-
-                                next += (ChatColorUtil.toChatColor(ToolClass.typeColorMap.get(t)) + ToolClass.typeNameMap.get(t) + ChatColor.GRAY);
-                                next += ",";
-
-                            }
+                        List<Component> typeNames = new ArrayList<>();
+                        for (DamageType t : DamageType.values()) {
+                            if (!set.contains(t)) continue;
+                            Color c = ToolClass.typeColorMap.get(t);
+                            TextColor textColor = TextColor.color(c.asRGB());
+                            typeNames.add(Component.text(ToolClass.typeNameMap.get(t), textColor));
                         }
-                        next = next.substring(0,next.length()-1);
-                        next += ")";
+
+
+                        Component next = Component.text("(", NamedTextColor.GRAY)
+                                .append(Component.join(JoinConfiguration.separator(Component.text(",", NamedTextColor.GRAY)), typeNames))
+                                .append(Component.text(")", NamedTextColor.GRAY));
+
                         Integer health = pdc.get(ToolClass.fromNamespaceKey("health"), PersistentDataType.INTEGER);
-                        if(health != null){
-                            entity.setCustomName(ChatColor.YELLOW + "剩余血量：" + ChatColor.RED + health + next);
+                        if (health != null) {
+                            entity.customName(
+                                    Component.text("剩余血量：", NamedTextColor.YELLOW)
+                                            .append(Component.text(health, NamedTextColor.RED))
+                                            .append(next)
+                            );
                         }
                         for(DamageType t : DamageType.values()){
                             if(ToolClass.element_type.containsKey(entity.getUniqueId())){
@@ -58,13 +67,13 @@ public class ElementTypeTimer extends BukkitRunnable {
                     }else{
                         Integer health = pdc.get(ToolClass.fromNamespaceKey("health"), PersistentDataType.INTEGER);
                         if(health != null){
-                            entity.setCustomName(ChatColor.YELLOW + "剩余血量：" + ChatColor.RED + health);
+                            entity.customName(Component.text("剩余血量",NamedTextColor.YELLOW).append(Component.text(String.valueOf(health),NamedTextColor.RED)));
                         }
                     }
                 }else{
                     Integer health = pdc.get(ToolClass.fromNamespaceKey("health"), PersistentDataType.INTEGER);
                     if(health != null){
-                        entity.setCustomName(ChatColor.YELLOW + "剩余血量：" + ChatColor.RED + health);
+                        entity.customName(Component.text("剩余血量",NamedTextColor.YELLOW).append(Component.text(String.valueOf(health),NamedTextColor.RED)));
                     }
                 }
             }

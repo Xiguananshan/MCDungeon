@@ -1,8 +1,8 @@
 package plugin.xiguananshan.mCDungeon.listeners;
 
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
+import net.kyori.adventure.text.Component;
+
 import org.bukkit.Sound;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -22,7 +22,7 @@ public class PlayerPickItemEventListener implements Listener {
                 Integer k = item.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("rock"), PersistentDataType.INTEGER);
                 if(k!= null){
                     ToolClass.rockDefenceTickTimerMap.get(p.getUniqueId()).AddRockState(k,200);
-                    p.sendMessage(ChatColor.YELLOW + "你捡起了一个岩结晶");
+                    p.sendMessage(Component.text("你捡起了个岩结晶"));
                     p.playSound(p, Sound.BLOCK_NOTE_BLOCK_HARP,1,1);
                     item.remove();
                     e.setCancelled(true);

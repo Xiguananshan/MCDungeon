@@ -1,22 +1,24 @@
 package plugin.xiguananshan.mCDungeon.ticks;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 
 import javax.swing.*;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerGunService extends BukkitRunnable {
-    private Player p;
+    private final Player p;
     public PlayerGunService(Player p){
         this.p = p;
     }
@@ -40,22 +42,29 @@ public class PlayerGunService extends BukkitRunnable {
                     meta.getPersistentDataContainer().remove(ToolClass.fromNamespaceKey("changing"));
 
                     meta.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("count"),PersistentDataType.INTEGER,max);
-                    String ss = ChatColor.YELLOW + "剩余弹药：" + ChatColor.GREEN + max + "/" + max;
-                    List<String> lore = meta.getLore();
-                    if(lore!=null)
-                        lore.set(2,ss);
-                    meta.setLore(lore);
+                    Component ss = Component.text("剩余弹药：", NamedTextColor.YELLOW)
+                            .append(Component.text(max + "/" + max, NamedTextColor.GREEN));
+
+
+                    List<Component> lore = meta.lore();
+                    if (lore == null) lore = new ArrayList<>();
+                    while (lore.size() <= 2) lore.add(Component.empty());
+                    lore.set(2, ss);
+                    meta.lore(lore);
                     stack.setItemMeta(meta);
                     p.getInventory().setItemInMainHand(stack);
                     p.playSound(p, Sound.ENTITY_ITEM_FRAME_ROTATE_ITEM,1,1);
                 }else{
                     meta.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("changing"),PersistentDataType.INTEGER,k);
                     DecimalFormat format = new DecimalFormat("0.00");
-                    String ss = ChatColor.YELLOW + "换弹时间：" + ChatColor.GREEN + format.format(k/20f) + "秒";
-                    List<String> lore = meta.getLore();
-                    if(lore!=null)
-                        lore.set(2,ss);
-                    meta.setLore(lore);
+                    Component ss = Component.text("换弹时间：", NamedTextColor.YELLOW)
+                            .append(Component.text(format.format(k / 20f) + "秒", NamedTextColor.GREEN));
+
+                    List<Component> lore = meta.lore();
+                    if (lore == null) lore = new ArrayList<>();
+                    while (lore.size() <= 2) lore.add(Component.empty());
+                    lore.set(2, ss);
+                    meta.lore(lore);
                     stack.setItemMeta(meta);
                     p.getInventory().setItemInMainHand(stack);
                     p.playSound(p, Sound.ENTITY_ITEM_FRAME_ROTATE_ITEM,1,1);

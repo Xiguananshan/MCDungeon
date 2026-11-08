@@ -1,6 +1,6 @@
 package plugin.xiguananshan.mCDungeon.ticks;
 
-import org.bukkit.Color;
+
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -14,7 +14,7 @@ import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 
 import java.util.Collection;
-import java.util.List;
+
 
 public class WindHoleService extends BukkitRunnable {
     private final ArmorStand display;

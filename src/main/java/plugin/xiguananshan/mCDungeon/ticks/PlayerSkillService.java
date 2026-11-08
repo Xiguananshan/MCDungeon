@@ -1,12 +1,10 @@
 package plugin.xiguananshan.mCDungeon.ticks;
 
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import plugin.xiguananshan.mCDungeon.ToolClass;
@@ -51,10 +49,13 @@ public class PlayerSkillService extends BukkitRunnable {
                 if(cold.containsKey(k)){
                     Integer ticks = cold.get(k);
                     DecimalFormat format = new DecimalFormat("0.00");
-                    if(ticks > 1){
-                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR,new TextComponent(ChatColor.YELLOW + "此道具技能冷却剩余时间：" + ChatColor.GREEN + format.format(ticks/20f) + "秒"));
-                    }else{
-                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR,new TextComponent(ChatColor.GREEN + "此道具技能冷却完毕！"));
+                    if (ticks > 1) {
+                        p.sendActionBar(
+                                Component.text("此道具技能冷却剩余时间：", NamedTextColor.YELLOW)
+                                        .append(Component.text(format.format(ticks / 20f) + "秒", NamedTextColor.GREEN))
+                        );
+                    } else {
+                        p.sendActionBar(Component.text("此道具技能冷却完毕！", NamedTextColor.GREEN));
                     }
 
                 }

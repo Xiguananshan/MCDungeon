@@ -5,6 +5,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerGunService;
+import plugin.xiguananshan.mCDungeon.ticks.PlayerLightningGunService;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerRockDefenceTickTimer;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerSkillService;
 
@@ -28,6 +29,11 @@ public class PlayerJoinListener implements Listener {
             PlayerSkillService service = new PlayerSkillService(e.getPlayer());
             service.runTaskTimer(ToolClass.PLUGIN,0,1);
             ToolClass.skillServiceMap.put(e.getPlayer().getUniqueId(),service);
+        }
+        if(!ToolClass.lightningGunServiceMap.containsKey(e.getPlayer().getUniqueId())){
+            PlayerLightningGunService service = new PlayerLightningGunService(e.getPlayer());
+            service.runTaskTimer(ToolClass.PLUGIN,0,1);
+            ToolClass.lightningGunServiceMap.put(e.getPlayer().getUniqueId(),service);
         }
     }
 }

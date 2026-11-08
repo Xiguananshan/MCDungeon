@@ -15,7 +15,7 @@ import java.util.Collection;
 
 
 public class SeedLightningTickTimer extends BukkitRunnable {
-    private Vector v;
+    private final Vector v;
     private Location seed;
     private final LivingEntity goal;
     private final World world;

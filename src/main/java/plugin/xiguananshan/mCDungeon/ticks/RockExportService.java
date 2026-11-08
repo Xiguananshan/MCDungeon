@@ -16,7 +16,7 @@ public class RockExportService extends BukkitRunnable {
     private final Location core;
     private final World world;
     private double a;
-    private HashSet<UUID> hurted;
+    private final HashSet<UUID> hurted;
     public RockExportService(World world,Location core){
         this.world = world;
         this.core = core;

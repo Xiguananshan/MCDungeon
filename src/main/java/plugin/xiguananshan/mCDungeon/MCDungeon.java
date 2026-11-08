@@ -1,5 +1,7 @@
 package plugin.xiguananshan.mCDungeon;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -20,6 +22,7 @@ public final class MCDungeon extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GunShootEventListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerPickItemEventListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(),this);
+        getServer().getPluginManager().registerEvents(new PotionBreakEventListener(),this);
         getCommand("test").setExecutor(new TestCommand());
         getCommand("test_gun").setExecutor(new TestGunCommand());
         getCommand("generate").setExecutor(new GenerateTestCommand());
@@ -28,6 +31,8 @@ public final class MCDungeon extends JavaPlugin {
         new GrassTickTimer().runTaskTimer(this,0,1);
         new BurnTickTImer().runTaskTimer(this,0,1);
         new PhysicAttackTicksTimer().runTaskTimer(this,0,1);
+        new EntityDefenceService().runTaskTimer(this,0,1);
+        new GrassSwordSkillService().runTaskTimer(this,0,1);
         // Plugin startup logic
     }
 
@@ -35,7 +40,7 @@ public final class MCDungeon extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         for (Player p : Bukkit.getOnlinePlayers()){
-            p.kickPlayer(ChatColor.RED + "插件热重载，请重新进服");
+            p.kick(Component.text("插件热重载，请重新进服", NamedTextColor.RED));
         }
     }
 }

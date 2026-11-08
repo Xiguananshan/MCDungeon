@@ -9,7 +9,7 @@ import java.util.List;
 
 
 public class PlayerRockDefenceTickTimer extends BukkitRunnable {
-    private List<RockDefenceState> states;
+    private final List<RockDefenceState> states;
     private final Player player;
 
     public PlayerRockDefenceTickTimer(Player player){
@@ -21,7 +21,7 @@ public class PlayerRockDefenceTickTimer extends BukkitRunnable {
         Integer k = ToolClass.defence.get(this.player.getUniqueId());
         k += (int)Math.ceil(attack*0.8f);
         ToolClass.defence.replace(this.player.getUniqueId(),k);
-        RockDefenceState state = new RockDefenceState(attack,ticks);
+        RockDefenceState state = new RockDefenceState(attack, ticks);
         states.add(state);
 
     }
@@ -43,7 +43,7 @@ public class PlayerRockDefenceTickTimer extends BukkitRunnable {
         }
     }
 
-    public class RockDefenceState{
+    public static class RockDefenceState{
         public int attack;
         public int ticks;
         public RockDefenceState(int attack,int ticks){

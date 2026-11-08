@@ -1,5 +1,7 @@
 package plugin.xiguananshan.mCDungeon.listeners;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -15,14 +17,12 @@ import org.bukkit.persistence.PersistentDataType;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 import plugin.xiguananshan.mCDungeon.events.GunShotEvent;
+
 import plugin.xiguananshan.mCDungeon.ticks.RockLifeTickTimer;
 import plugin.xiguananshan.mCDungeon.ticks.SeedLightningTickTimer;
 
 import javax.swing.*;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class EntityDamageEventListener implements Listener {
     @EventHandler
@@ -31,9 +31,10 @@ public class EntityDamageEventListener implements Listener {
             PersistentDataContainer pdc = l.getPersistentDataContainer();
             if(e.getEntity() instanceof Player p){
                 Integer defence = ToolClass.defence.get(p.getUniqueId());
-                e.setDamage(1d-0.6d*2/Math.PI*Math.atan(1/200f*defence));
+                e.setDamage(e.getDamage()*(1d-0.6d*2/Math.PI*Math.atan(1/200f*defence)));
                 return;
             }
+
             if(e.getDamageSource().getCausingEntity() != null){
                 if(e.getDamageSource().getCausingEntity() instanceof Player p){
                     ItemStack stack = p.getInventory().getItemInMainHand();
@@ -49,8 +50,12 @@ public class EntityDamageEventListener implements Listener {
                                 try{
                                     DamageType type = DamageType.valueOf(ele);
                                     ToolClass.typeMap.put(l.getUniqueId(),type);
-                                    e.setDamage(k);
+                                    Long ticks = ToolClass.sword_tick.get(l.getUniqueId());
+                                    if(ticks == null) ticks = 0L;
+                                    e.setDamage(System.currentTimeMillis() - ticks > 300 ? k : 1);
+                                    ToolClass.sword_tick.put(l.getUniqueId(),System.currentTimeMillis());
                                 }catch (Exception ignore){}
+
                             }
                         }
                     }
@@ -61,6 +66,13 @@ public class EntityDamageEventListener implements Listener {
                 if(ToolClass.typeMap.containsKey(l.getUniqueId())){
                     DamageType t = ToolClass.typeMap.get(l.getUniqueId());
                     ToolClass.typeMap.remove(l.getUniqueId());
+                    if(ToolClass.entity_defence.containsKey(e.getEntity().getUniqueId())){
+                        Map<DamageType,Integer> ds = ToolClass.entity_defence.get(e.getEntity().getUniqueId());
+                        if(ds.containsKey(t)){
+                            Integer d = ds.get(t);
+                            e.setDamage(e.getDamage()*(1d-0.6d*2/Math.PI*Math.atan(1/200f*d)));
+                        }
+                    }
                     if(t!=DamageType.PHYSIC){
                         if(ToolClass.entity_type.containsKey(l.getUniqueId())){
                             HashSet<DamageType> types = ToolClass.entity_type.get(l.getUniqueId());
@@ -86,26 +98,26 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
-                                    ToolClass.SpawnTextEntity(ChatColor.GOLD + "蒸发",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("蒸发", NamedTextColor.GOLD),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                 }else if(types.contains(DamageType.LIGHTNING)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).put(DamageType.LIGHTNING,400);
-                                    ToolClass.SpawnTextEntity(ChatColor.LIGHT_PURPLE + "感电",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("感电", NamedTextColor.LIGHT_PURPLE),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     e.setDamage(e.getDamage()*1.2f);
                                 }else if(types.contains(DamageType.ICE)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
-                                    ToolClass.SpawnTextEntity(ChatColor.AQUA + "冻结",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("冻结", NamedTextColor.AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ToolClass.freeze_tick.put(l.getUniqueId(),40);
                                 }else if(types.contains(DamageType.GRASS)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.GRASS);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.GRASS);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
-                                    ToolClass.SpawnTextEntity(ChatColor.GREEN + "绽放",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("绽放", NamedTextColor.GREEN),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ItemStack stack = new ItemStack(Material.LIME_WOOL);
                                     Item item = l.getWorld().dropItemNaturally(l.getLocation(),stack);
                                     PersistentDataContainer pdc1 = item.getPersistentDataContainer();
@@ -120,13 +132,13 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
-                                    ToolClass.SpawnTextEntity(ChatColor.GOLD + "蒸发", l.getWorld(), l.getLocation().add(0, l.getHeight() + 0.2f, 0));
+                                    ToolClass.SpawnTextEntity(Component.text("蒸发", NamedTextColor.GOLD), l.getWorld(), l.getLocation().add(0, l.getHeight() + 0.2f, 0));
                                 }else if(types.contains(DamageType.LIGHTNING)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
-                                    ToolClass.SpawnTextEntity(ChatColor.LIGHT_PURPLE + "超载",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("超载", NamedTextColor.LIGHT_PURPLE),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     List<Entity> entities = l.getNearbyEntities(1.5,1.5,1.5);
                                     for(Entity entity : entities){
                                         if(entity.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
@@ -141,12 +153,12 @@ public class EntityDamageEventListener implements Listener {
                                     l.getWorld().spawnParticle(Particle.EXPLOSION,l.getLocation(),20);
                                     l.getWorld().playSound(l.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,1,1);
                                 }
-                                    else if(types.contains(DamageType.GRASS)){
+                                else if(types.contains(DamageType.GRASS)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.GRASS);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.GRASS);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
-                                    ToolClass.SpawnTextEntity(ChatColor.GOLD + "燃烧",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("燃烧", NamedTextColor.GOLD),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ToolClass.grass_burn.put(l.getUniqueId(),5);
                                 }else if(types.contains(DamageType.ICE)){
                                     e.setDamage(e.getDamage()*2);
@@ -157,7 +169,7 @@ public class EntityDamageEventListener implements Listener {
                                     if(ToolClass.freeze_tick.containsKey(l.getUniqueId())){
                                         ToolClass.freeze_tick.replace(l.getUniqueId(),0);
                                     }
-                                    ToolClass.SpawnTextEntity(ChatColor.GOLD + "融化",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("融化", NamedTextColor.GOLD),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                 }
                             }else if(t == DamageType.ICE){
                                 if(types.contains(DamageType.WATER)){
@@ -165,7 +177,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
-                                    ToolClass.SpawnTextEntity(ChatColor.AQUA + "冻结",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("冻结", NamedTextColor.AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ToolClass.freeze_tick.put(l.getUniqueId(),40);
                                 }else if(types.contains(DamageType.FIRE)){
                                     e.setDamage(e.getDamage()*1.5);
@@ -176,13 +188,13 @@ public class EntityDamageEventListener implements Listener {
                                     if(ToolClass.freeze_tick.containsKey(l.getUniqueId())){
                                         ToolClass.freeze_tick.replace(l.getUniqueId(),0);
                                     }
-                                    ToolClass.SpawnTextEntity(ChatColor.GOLD + "融化",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("融化", NamedTextColor.GOLD),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                 }else if(types.contains(DamageType.LIGHTNING)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.ICE);
-                                    ToolClass.SpawnTextEntity(ChatColor.AQUA + "超导",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("超导", NamedTextColor.AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ToolClass.physic_attack.put(l.getUniqueId(),60);
                                 }
 
@@ -193,7 +205,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.AIR);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
-                                    ToolClass.SpawnTextEntity(ChatColor.DARK_AQUA + "扩散",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("扩散", NamedTextColor.DARK_AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
 
                                     List<Entity> entities = l.getNearbyEntities(2,2,2);
                                     for(Entity entity : entities){
@@ -213,7 +225,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.AIR);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
-                                    ToolClass.SpawnTextEntity(ChatColor.DARK_AQUA + "扩散",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("扩散", NamedTextColor.DARK_AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
 
                                     List<Entity> entities = l.getNearbyEntities(2,2,2);
                                     for(Entity entity : entities){
@@ -246,7 +258,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.AIR);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.ICE);
-                                    ToolClass.SpawnTextEntity(ChatColor.DARK_AQUA + "扩散",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("扩散", NamedTextColor.DARK_AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
 
                                     List<Entity> entities = l.getNearbyEntities(2,2,2);
                                     for(Entity entity : entities){
@@ -266,7 +278,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.AIR);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
-                                    ToolClass.SpawnTextEntity(ChatColor.DARK_AQUA + "扩散",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("扩散", NamedTextColor.DARK_AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
 
                                     List<Entity> entities = l.getNearbyEntities(2,2,2);
                                     for(Entity entity : entities){
@@ -310,7 +322,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.GRASS);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
-                                    ToolClass.SpawnTextEntity(ChatColor.GREEN + "绽放",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("绽放", NamedTextColor.GREEN),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ItemStack stack = new ItemStack(Material.LIME_WOOL);
                                     Item item = l.getWorld().dropItemNaturally(l.getLocation(),stack);
                                     PersistentDataContainer pdc1 = item.getPersistentDataContainer();
@@ -322,13 +334,13 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.GRASS);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
-                                    ToolClass.SpawnTextEntity(ChatColor.GOLD + "燃烧",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("燃烧", NamedTextColor.GOLD),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ToolClass.grass_burn.put(l.getUniqueId(),5);
                                 } else if(types.contains(DamageType.LIGHTNING)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.element_type.get(l.getUniqueId()).put(DamageType.GRASS,400);
-                                    ToolClass.SpawnTextEntity(ChatColor.GREEN + "原激化",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("原激化", NamedTextColor.GREEN ),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ToolClass.typeMap.put(l.getUniqueId(),DamageType.GRASS);
                                     l.damage(e.getDamage()*1.2f);
                                 }
@@ -337,14 +349,14 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.element_type.get(l.getUniqueId()).put(DamageType.LIGHTNING,400);
-                                    ToolClass.SpawnTextEntity(ChatColor.LIGHT_PURPLE + "感电",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("感电", NamedTextColor.LIGHT_PURPLE),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     e.setDamage(e.getDamage()*1.2f);
                                 }else if(types.contains(DamageType.FIRE)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
-                                    ToolClass.SpawnTextEntity(ChatColor.LIGHT_PURPLE + "超载",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("超载", NamedTextColor.LIGHT_PURPLE),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     List<Entity> entities = l.getNearbyEntities(1.5,1.5,1.5);
                                     for(Entity entity : entities){
                                         if(entity.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
@@ -363,13 +375,13 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.ICE);
-                                    ToolClass.SpawnTextEntity(ChatColor.AQUA + "超导",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("超导", NamedTextColor.AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ToolClass.physic_attack.put(l.getUniqueId(),60);
                                 }else if(types.contains(DamageType.GRASS)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.element_type.get(l.getUniqueId()).put(DamageType.GRASS,400);
-                                    ToolClass.SpawnTextEntity(ChatColor.GREEN + "原激化",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("原激化", NamedTextColor.GREEN),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     ToolClass.typeMap.put(l.getUniqueId(),DamageType.GRASS);
                                     l.damage(e.getDamage()*1.2f);
                                 }
@@ -381,7 +393,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     Item i = l.getWorld().dropItemNaturally(l.getLocation(),new ItemStack(Material.YELLOW_WOOL));
                                     i.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("rock"),PersistentDataType.INTEGER,(int)Math.ceil(e.getDamage()));
-                                    ToolClass.SpawnTextEntity(ChatColor.YELLOW + "结晶",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("结晶", NamedTextColor.YELLOW ),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     new RockLifeTickTimer(100,i).runTaskTimer(ToolClass.PLUGIN,0,1);
                                 }
                                 if(types.contains(DamageType.FIRE)){
@@ -391,7 +403,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     Item i = l.getWorld().dropItemNaturally(l.getLocation(),new ItemStack(Material.YELLOW_WOOL));
                                     i.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("rock"),PersistentDataType.INTEGER,(int)Math.ceil(e.getDamage()));
-                                    ToolClass.SpawnTextEntity(ChatColor.YELLOW + "结晶",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("结晶", NamedTextColor.YELLOW ),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     new RockLifeTickTimer(100,i).runTaskTimer(ToolClass.PLUGIN,0,1);
                                 }
                                 if(types.contains(DamageType.ICE)){
@@ -401,7 +413,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     Item i = l.getWorld().dropItemNaturally(l.getLocation(),new ItemStack(Material.YELLOW_WOOL));
                                     i.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("rock"),PersistentDataType.INTEGER,(int)Math.ceil(e.getDamage()));
-                                    ToolClass.SpawnTextEntity(ChatColor.YELLOW + "结晶",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("结晶", NamedTextColor.YELLOW ),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     new RockLifeTickTimer(100,i).runTaskTimer(ToolClass.PLUGIN,0,1);
                                 }
                                 if(types.contains(DamageType.LIGHTNING)){
@@ -411,7 +423,7 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     Item i = l.getWorld().dropItemNaturally(l.getLocation(),new ItemStack(Material.YELLOW_WOOL));
                                     i.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("rock"),PersistentDataType.INTEGER,(int)Math.ceil(e.getDamage()));
-                                    ToolClass.SpawnTextEntity(ChatColor.YELLOW + "结晶",l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
+                                    ToolClass.SpawnTextEntity(Component.text("结晶", NamedTextColor.YELLOW ),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     new RockLifeTickTimer(100,i).runTaskTimer(ToolClass.PLUGIN,0,1);
                                 }
                             }

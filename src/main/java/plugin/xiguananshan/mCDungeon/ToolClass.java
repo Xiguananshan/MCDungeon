@@ -1,5 +1,9 @@
 package plugin.xiguananshan.mCDungeon;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.structure.Mirror;
@@ -24,9 +28,7 @@ import plugin.xiguananshan.mCDungeon.enums.DamageType;
 import plugin.xiguananshan.mCDungeon.events.GunShotEvent;
 import plugin.xiguananshan.mCDungeon.ticks.*;
 
-import javax.naming.Name;
-import java.awt.*;
-import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,8 +38,12 @@ public class ToolClass {
     public static ItemStack DefaultGun = new ItemStack(Material.GOLDEN_HOE);
     public static ItemStack WindSword = new ItemStack(Material.DIAMOND_SWORD);
     public static ItemStack StoneBook = new ItemStack(Material.BOOK);
+    public static ItemStack LightningGun = new ItemStack(Material.DIAMOND_HOE);
+    public static ItemStack GrassSword = new ItemStack(Material.WOODEN_SWORD);
+    public static ItemStack WaterBook = new ItemStack(Material.BOOK);
     public static Map<UUID,Long> Shoot_timer = new HashMap<>();
     public static Map<UUID,DamageType> typeMap = new HashMap<>();
+    public static Map<UUID,Map<DamageType,Integer>> entity_defence = new HashMap<>();
     public static Map<UUID, HashSet<DamageType>> entity_type = new HashMap<>();
     public static Map<UUID,Map<DamageType,Integer>> element_type = new HashMap<>();
     public static Map<UUID,Integer> freeze_tick = new HashMap<>();
@@ -45,10 +51,12 @@ public class ToolClass {
     public static Map<UUID,Integer> grass_burn = new HashMap<>();
     public static Map<UUID,Integer> physic_attack = new HashMap<>();
     public static Map<UUID,Integer> defence = new HashMap<>();
+    public static Map<UUID,Integer> grass_sword_skill_tick= new HashMap<>();
     public static Map<UUID, PlayerGunService> gunServiceMap = new HashMap<>();
     public static Map<UUID, PlayerRockDefenceTickTimer> rockDefenceTickTimerMap = new HashMap<>();
     public static Map<UUID, PlayerSkillService> skillServiceMap = new HashMap<>();
-    public static Map<UUID,Long>  rock_book_tick = new HashMap<>();
+    public static Map<UUID,PlayerLightningGunService> lightningGunServiceMap = new HashMap<>();
+    public static Map<UUID,Long> book_tick = new HashMap<>();
     public static Integer max_item_id = 0;
     public static List<UUID> game_players = new ArrayList<>();
     public static Structure CROSS_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("cross_north"));
@@ -61,6 +69,7 @@ public class ToolClass {
     public static Structure SHOP_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("shop_room"));
     public static Structure Box_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("box_room"));
     public static StorageManager storageManager = new StorageManager("map.dat");
+    public static Map<UUID,Long> sword_tick = new HashMap<>();
     public static Map<DamageType,Color> typeColorMap = new HashMap<>(){{
         put(DamageType.PHYSIC,Color.fromARGB(255,255,255,255));
         put(DamageType.AIR,Color.fromRGB(0x00AAAA));
@@ -88,12 +97,18 @@ public class ToolClass {
         meta.setUnbreakable(true);
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(fromNamespaceKey("normal_gun"),PersistentDataType.BOOLEAN,true);
-        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"LIGHTNING");
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"PHYSIC");
         pdc.set(fromNamespaceKey("count"),PersistentDataType.INTEGER,10);
         pdc.set(fromNamespaceKey("max_count"),PersistentDataType.INTEGER,10);
-        String ss = ChatColor.YELLOW + "剩余弹药：" + ChatColor.GREEN + 10 + "/10";
-        meta.setDisplayName(ChatColor.WHITE + "普通枪");
-        meta.setLore(List.of(ChatColor.YELLOW + "只是一把再普通不过的枪，射击敌人造成35伤害",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.LIGHTNING)) + typeNameMap.get(DamageType.LIGHTNING),ss,ChatColor.YELLOW + "左键换弹") );
+        pdc.set(fromNamespaceKey("load_tick"),PersistentDataType.INTEGER,100);
+        Component ss = Component.text("剩余弹药：",NamedTextColor.YELLOW).append(Component.text("10/10",NamedTextColor.GREEN));
+        Component name = Component.text("普通枪", NamedTextColor.WHITE);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("只是一把再普通不过的枪，射击敌人造成35伤害",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.PHYSIC),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.PHYSIC).asRGB()))))
+                ,ss,
+                Component.text("左键换弹",NamedTextColor.YELLOW)))
+        ;
         DefaultGun.setItemMeta(meta);
     }
     static{
@@ -106,8 +121,11 @@ public class ToolClass {
         pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"AIR");
         pdc.set(fromNamespaceKey("sword"),PersistentDataType.INTEGER,160);
         pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,600);
-        meta.setDisplayName(ChatColor.GOLD + "狂风怒号之刃");
-        meta.setLore(List.of(ChatColor.YELLOW + "一把汲取了浓烈空气元素力量的剑，见证了风在星球上的千年历史，攻击敌人造成160点伤害",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.AIR)) + typeNameMap.get(DamageType.AIR),ChatColor.YELLOW + "按住Shift+右键可以释放这把剑的技能",ChatColor.YELLOW + "技能：在上方生成一个持续10秒的风洞，风洞会不断吸收周围5格内的敌人，并对周围2格内的敌人每秒造成2次40点空气元素伤害"));
+        Component name = Component.text("狂风怒号之刃", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("一把汲取了浓烈空气元素力量的剑，见证了风在星球上的千年历史，攻击敌人造成160点伤害",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.AIR),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.AIR).asRGB()))))
+                ,Component.text("按住Shift+右键可以释放这把剑的技能",NamedTextColor.YELLOW),Component.text("技能：在上方生成一个持续10秒的风洞，风洞会不断吸收周围5格内的敌人，并对周围2格内的敌人每秒造成2次40点空气元素伤害",NamedTextColor.YELLOW)));
         WindSword.setItemMeta(meta);
     }
     static{
@@ -119,9 +137,74 @@ public class ToolClass {
         pdc.set(fromNamespaceKey("stone_book"),PersistentDataType.BOOLEAN,true);
         pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"ROCK");
         pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,300);
-        meta.setDisplayName(ChatColor.GOLD + "粉骨碎身之法");
-        meta.setLore(List.of(ChatColor.YELLOW + "一本上面写着《岩国通史》的书，后来因为其拥有者得到了岩的祝福而变成了强力的法器",ChatColor.YELLOW + "元素：" + ChatColorUtil.toChatColor(typeColorMap.get(DamageType.ROCK)) + typeNameMap.get(DamageType.ROCK),ChatColor.YELLOW + "按住Shift+右键可以释放这把剑的技能",ChatColor.YELLOW + "技能：从上方砸下一块石头，落地时给周围3*3范围内的敌人造成700岩元素伤害，落下的石头在接下来8秒内进行4次岩共鸣，每次共鸣对周围4格范围内的敌人造成100点岩元素伤害"));
+        Component name = Component.text("粉骨碎身之法", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("一本上面写着《岩国通史》的书，后来因为其拥有者得到了岩的祝福而变成了强力的法器，右键向前投出一块石头，击中敌人造成80点岩元素伤害",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.ROCK),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.ROCK).asRGB()))))
+                ,Component.text("按住Shift+右键可以释放这本法器的技能",NamedTextColor.YELLOW)
+                ,Component.text("技能：从上方砸下一块石头，落地时给周围3*3范围内的敌人造成700岩元素伤害，落下的石头在接下来8秒内进行4次岩共鸣，每次共鸣对周围4格范围内的敌人造成100点岩元素伤害",NamedTextColor.YELLOW)));
+
         StoneBook.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = LightningGun.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("lightning_gun"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"LIGHTNING");
+        pdc.set(fromNamespaceKey("count"),PersistentDataType.INTEGER,1);
+        pdc.set(fromNamespaceKey("max_count"),PersistentDataType.INTEGER,1);
+        pdc.set(fromNamespaceKey("load_tick"),PersistentDataType.INTEGER,60);
+        pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,1200);
+        Component ss = Component.text("剩余弹药：",NamedTextColor.YELLOW).append(Component.text("1/1",NamedTextColor.GREEN));
+        Component name = Component.text("雷光展露之炮", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("大人，时代变了，当该武器弹药不为0时手持该武器可以蓄力，蓄力越久伤害越高，最高可达500点",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.LIGHTNING),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.LIGHTNING).asRGB()))))
+                ,ss
+                ,Component.text("左键换弹",NamedTextColor.YELLOW)
+                ,Component.text("按住Shift+右键可以释放这门炮的技能",NamedTextColor.YELLOW)
+                ,Component.text("技能：向前挥出5格宽的雷元素剑气，可穿透墙壁和敌人，造成1200点雷元素伤害",NamedTextColor.YELLOW)));
+
+        LightningGun.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = GrassSword.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("grass_sword"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"GRASS");
+        pdc.set(fromNamespaceKey("sword"),PersistentDataType.INTEGER,220);
+        pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,400);
+        Component name = Component.text("蔓草丛生之剑", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("草木哺育生命，也能扼杀生命，攻击造成220点草元素伤害",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.GRASS),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.GRASS).asRGB()))))
+                ,Component.text("按住Shift+右键可以释放这把剑的技能",NamedTextColor.YELLOW),Component.text("技能：在附近4*4的敌人的位置生成藤蔓使其无法动弹，并造成400点草元素伤害，降低240点草元素抗性",NamedTextColor.YELLOW)));
+
+        GrassSword.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = WaterBook.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("water_book"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"WATER");
+        pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,400);
+        Component name = Component.text("静水翻涌之典", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("水是生命之源，但愿是。右键投出一瓶水，落地产生一滩能对敌人持续每秒造成65点水元素伤害的水，持续3秒",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.WATER),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.WATER).asRGB()))))
+                ,Component.text("按住Shift+右键可以释放这本法器的技能",NamedTextColor.YELLOW)
+                ,Component.text("技能：在周围形成一个持续10秒的水圈，在水圈内部的敌人会每秒受到2次120点的水元素伤害，并被排开，每有一个敌人受到来自水圈的伤害，你都有40%的概率恢复1HP",NamedTextColor.YELLOW)));
+
+        WaterBook.setItemMeta(meta);
     }
     public static ItemStack fromItem(ItemStack stack){
         ItemStack s = stack.clone();
@@ -136,7 +219,6 @@ public class ToolClass {
         Mob entity = world.spawn(location, type);
         entity.setAI(ai);
         EntityEquipment equipment = entity.getEquipment();
-        assert equipment != null;
         equipment.setHelmetDropChance(0.0F);
         equipment.setChestplateDropChance(0.0F);
         equipment.setLeggingsDropChance(0.0F);
@@ -152,7 +234,7 @@ public class ToolClass {
         pdc.set(fromNamespaceKey("health"), PersistentDataType.INTEGER,health);
         pdc.set(fromNamespaceKey("entity"),PersistentDataType.BOOLEAN,true);
         entity.setCustomNameVisible(true);
-        entity.setCustomName(ChatColor.YELLOW + "剩余血量：" + ChatColor.RED + health);
+        entity.customName(Component.text("剩余血量",NamedTextColor.YELLOW).append(Component.text(String.valueOf(health),NamedTextColor.RED)));
 
     }
     public static NamespacedKey fromNamespaceKey(String name){
@@ -166,9 +248,9 @@ public class ToolClass {
         ans.setItemMeta(meta);
         return ans;
     }
-    public static void SpawnDamageEntity(int damage,World world,Location location,ChatColor color){
+    public static void SpawnDamageEntity(int damage,World world,Location location,NamedTextColor color){
         TextDisplay entity = world.spawn(location, TextDisplay.class);
-        entity.setText(color +"-" + damage);
+        entity.text(Component.text("-" + damage,color));
         entity.setBillboard(Display.Billboard.CENTER);
         entity.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         entity.setShadowed(true);
@@ -176,9 +258,9 @@ public class ToolClass {
         BukkitRunnable runnable = new DamageTextTick(entity,0.5f);
         runnable.runTaskTimer(PLUGIN,0,1);
     }
-    public static void SpawnTextEntity(String text,World world,Location location){
+    public static void SpawnTextEntity(Component text,World world,Location location){
         TextDisplay entity = world.spawn(location, TextDisplay.class);
-        entity.setText(text);
+        entity.text(text);
         entity.setBillboard(Display.Billboard.CENTER);
         entity.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         entity.setShadowed(true);
@@ -304,7 +386,14 @@ public class ToolClass {
     public static void GenerateMap(List<Player> players,int type) {
         if(type == 1){
             game_players.clear();
-            for(Player player : players)    {game_players.add(player.getUniqueId());player.sendTitle(ChatColor.YELLOW + "正在生成地图","",10,40,10);}
+            Title title = Title.title(Component.text("正在生成地图",NamedTextColor.YELLOW),
+                    Component.text().build(),
+                    Title.Times.times(
+                    Duration.ofMillis(500),
+                    Duration.ofMillis(2000),
+                    Duration.ofMillis(500)
+            ));
+            for(Player player : players)    {game_players.add(player.getUniqueId());player.showTitle(title);}
             List<Structure> spawnable = List.of(CENTER_ROOM_1_2,CENTER_ROOM_1_1, SHOP_ROOM_1_1, ACTIVITY_ROOM_1_1,  Box_ROOM_1_1);
             World world = Bukkit.getWorld("world");
             assert  world != null;
@@ -350,14 +439,14 @@ public class ToolClass {
                         data.corners.add(new CornerData.Corner(finalL.l.getBlockX(),finalL.l.getBlockY(),finalL.l.getBlockZ(),finalL.l.getBlockX()+29,finalL.l.getBlockY()+5,finalL.l.getBlockZ()+29));
                         if(!rooms.contains(location)){
                             rooms.add(location);
-                            s.place(new Location(world,location.x,location.y,location.z),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
-                            CrossData c1 = new CrossData(new Location(world,location.x+30,location.y,location.z),CrossStructureType.XA);
-                            CrossData c2 = new CrossData(new Location(world,location.x,location.y,location.z-30),CrossStructureType.ZR);
-                            CrossData c3 = new CrossData(new Location(world,location.x,location.y,location.z+30),CrossStructureType.ZA);
+                            s.place(new Location(world, location.x(), location.y(), location.z()),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
+                            CrossData c1 = new CrossData(new Location(world, location.x() +30, location.y(), location.z()),CrossStructureType.XA);
+                            CrossData c2 = new CrossData(new Location(world, location.x(), location.y(), location.z() -30),CrossStructureType.ZR);
+                            CrossData c3 = new CrossData(new Location(world, location.x(), location.y(), location.z() +30),CrossStructureType.ZA);
                             spawn.add(c1);
                             spawn.add(c2);
                             spawn.add(c3);
-                            data.corners.add(new CornerData.Corner(location.x, location.y,location.z, location.x+29, location.y+5, location.z+29));
+                            data.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() +29, location.y() +5, location.z() +29));
                             if(s == CENTER_ROOM_1_1 || s == CENTER_ROOM_1_2){
                                 center++;
                             }
@@ -375,14 +464,14 @@ public class ToolClass {
                         data.corners.add(new CornerData.Corner(finalL.l.getBlockX(),finalL.l.getBlockY(),finalL.l.getBlockZ(),finalL.l.getBlockX()+29,finalL.l.getBlockY()+5,finalL.l.getBlockZ()+29));
                         if(!rooms.contains(location)){
                             rooms.add(location);
-                            s.place(new Location(world,location.x,location.y,location.z),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
-                            CrossData c1 = new CrossData(new Location(world,location.x-30,location.y,location.z),CrossStructureType.XR);
-                            CrossData c2 = new CrossData(new Location(world,location.x,location.y,location.z-30),CrossStructureType.ZR);
-                            CrossData c3 = new CrossData(new Location(world,location.x,location.y,location.z+30),CrossStructureType.ZA);
+                            s.place(new Location(world, location.x(), location.y(), location.z()),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
+                            CrossData c1 = new CrossData(new Location(world, location.x() -30, location.y(), location.z()),CrossStructureType.XR);
+                            CrossData c2 = new CrossData(new Location(world, location.x(), location.y(), location.z() -30),CrossStructureType.ZR);
+                            CrossData c3 = new CrossData(new Location(world, location.x(), location.y(), location.z() +30),CrossStructureType.ZA);
                             spawn.add(c1);
                             spawn.add(c2);
                             spawn.add(c3);
-                            data.corners.add(new CornerData.Corner(location.x, location.y,location.z, location.x+29, location.y+5, location.z+29));
+                            data.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() +29, location.y() +5, location.z() +29));
                             if(s == CENTER_ROOM_1_1 || s == CENTER_ROOM_1_2){
                                 center++;
                             }
@@ -400,14 +489,14 @@ public class ToolClass {
                         data.corners.add(new CornerData.Corner(finalL.l.getBlockX(),finalL.l.getBlockY(),finalL.l.getBlockZ(),finalL.l.getBlockX()+29,finalL.l.getBlockY()+5,finalL.l.getBlockZ()+29));
                         if(!rooms.contains(location)){
                             rooms.add(location);
-                            s.place(new Location(world,location.x,location.y,location.z),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
-                            CrossData c1 = new CrossData(new Location(world,location.x-30,location.y,location.z),CrossStructureType.XR);
-                            CrossData c2 = new CrossData(new Location(world,location.x+30,location.y,location.z),CrossStructureType.XA);
-                            CrossData c3 = new CrossData(new Location(world,location.x,location.y,location.z+30),CrossStructureType.ZA);
+                            s.place(new Location(world, location.x(), location.y(), location.z()),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
+                            CrossData c1 = new CrossData(new Location(world, location.x() -30, location.y(), location.z()),CrossStructureType.XR);
+                            CrossData c2 = new CrossData(new Location(world, location.x() +30, location.y(), location.z()),CrossStructureType.XA);
+                            CrossData c3 = new CrossData(new Location(world, location.x(), location.y(), location.z() +30),CrossStructureType.ZA);
                             spawn.add(c1);
                             spawn.add(c2);
                             spawn.add(c3);
-                            data.corners.add(new CornerData.Corner(location.x, location.y,location.z, location.x+29, location.y+5, location.z+29));
+                            data.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() +29, location.y() +5, location.z() +29));
                             if(s == CENTER_ROOM_1_1 || s == CENTER_ROOM_1_2){
                                 center++;
                             }
@@ -425,14 +514,14 @@ public class ToolClass {
                         data.corners.add(new CornerData.Corner(finalL.l.getBlockX(),finalL.l.getBlockY(),finalL.l.getBlockZ(),finalL.l.getBlockX()+29,finalL.l.getBlockY()+5,finalL.l.getBlockZ()+29));
                         if(!rooms.contains(location)){
                             rooms.add(location);
-                            s.place(new Location(world,location.x,location.y,location.z),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
-                            CrossData c1 = new CrossData(new Location(world,location.x+30,location.y,location.z),CrossStructureType.XA);
-                            CrossData c2 = new CrossData(new Location(world,location.x-30,location.y,location.z),CrossStructureType.XR);
-                            CrossData c3 = new CrossData(new Location(world,location.x,location.y,location.z-30),CrossStructureType.ZR);
+                            s.place(new Location(world, location.x(), location.y(), location.z()),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
+                            CrossData c1 = new CrossData(new Location(world, location.x() +30, location.y(), location.z()),CrossStructureType.XA);
+                            CrossData c2 = new CrossData(new Location(world, location.x() -30, location.y(), location.z()),CrossStructureType.XR);
+                            CrossData c3 = new CrossData(new Location(world, location.x(), location.y(), location.z() -30),CrossStructureType.ZR);
                             spawn.add(c1);
                             spawn.add(c2);
                             spawn.add(c3);
-                            data.corners.add(new CornerData.Corner(location.x, location.y,location.z, location.x+29, location.y+5, location.z+29));
+                            data.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() +29, location.y() +5, location.z() +29));
                             if(s == CENTER_ROOM_1_1 || s == CENTER_ROOM_1_2){
                                 center++;
                             }
@@ -460,15 +549,15 @@ public class ToolClass {
                                 data.corners.add(new CornerData.Corner(finalL1.l.getBlockX(),finalL1.l.getBlockY(),finalL1.l.getBlockZ(),finalL1.l.getBlockX()+29,finalL1.l.getBlockY()+5,finalL1.l.getBlockZ()+29));
                                 if(!rooms.contains(location)){
                                     rooms.add(location);
-                                    BOSS_ROOM_1_1.place(new Location(world,location.x,location.y,location.z),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
-                                    CrossData c1 = new CrossData(new Location(world,location.x+30,location.y,location.z),CrossStructureType.XA);
-                                    CrossData c2 = new CrossData(new Location(world,location.x,location.y,location.z-30),CrossStructureType.ZR);
-                                    CrossData c3 = new CrossData(new Location(world,location.x,location.y,location.z+30),CrossStructureType.ZA);
+                                    BOSS_ROOM_1_1.place(new Location(world, location.x(), location.y(), location.z()),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
+                                    CrossData c1 = new CrossData(new Location(world, location.x() +30, location.y(), location.z()),CrossStructureType.XA);
+                                    CrossData c2 = new CrossData(new Location(world, location.x(), location.y(), location.z() -30),CrossStructureType.ZR);
+                                    CrossData c3 = new CrossData(new Location(world, location.x(), location.y(), location.z() +30),CrossStructureType.ZA);
                                     spawn.add(c1);
                                     spawn.add(c2);
                                     spawn.add(c3);
                                     boss++;
-                                    data.corners.add(new CornerData.Corner(location.x, location.y,location.z, location.x+29, location.y+5, location.z+29));
+                                    data.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() +29, location.y() +5, location.z() +29));
 
                                 }
                             }
@@ -478,15 +567,15 @@ public class ToolClass {
                                 data.corners.add(new CornerData.Corner(finalL1.l.getBlockX(),finalL1.l.getBlockY(),finalL1.l.getBlockZ(),finalL1.l.getBlockX()+29,finalL1.l.getBlockY()+5,finalL1.l.getBlockZ()+29));
                                 if(!rooms.contains(location)){
                                     rooms.add(location);
-                                    BOSS_ROOM_1_1.place(new Location(world,location.x,location.y,location.z),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
-                                    CrossData c1 = new CrossData(new Location(world,location.x-30,location.y,location.z),CrossStructureType.XR);
-                                    CrossData c2 = new CrossData(new Location(world,location.x,location.y,location.z-30),CrossStructureType.ZR);
-                                    CrossData c3 = new CrossData(new Location(world,location.x,location.y,location.z+30),CrossStructureType.ZA);
+                                    BOSS_ROOM_1_1.place(new Location(world, location.x(), location.y(), location.z()),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
+                                    CrossData c1 = new CrossData(new Location(world, location.x() -30, location.y(), location.z()),CrossStructureType.XR);
+                                    CrossData c2 = new CrossData(new Location(world, location.x(), location.y(), location.z() -30),CrossStructureType.ZR);
+                                    CrossData c3 = new CrossData(new Location(world, location.x(), location.y(), location.z() +30),CrossStructureType.ZA);
                                     spawn.add(c1);
                                     spawn.add(c2);
                                     spawn.add(c3);
                                     boss++;
-                                    data.corners.add(new CornerData.Corner(location.x, location.y,location.z, location.x+29, location.y+5, location.z+29));
+                                    data.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() +29, location.y() +5, location.z() +29));
                                 }
                             }
                             case ZA -> {
@@ -495,15 +584,15 @@ public class ToolClass {
                                 data.corners.add(new CornerData.Corner(finalL1.l.getBlockX(),finalL1.l.getBlockY(),finalL1.l.getBlockZ(),finalL1.l.getBlockX()+29,finalL1.l.getBlockY()+5,finalL1.l.getBlockZ()+29));
                                 if(!rooms.contains(location)){
                                     rooms.add(location);
-                                    BOSS_ROOM_1_1.place(new Location(world,location.x,location.y,location.z),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
-                                    CrossData c1 = new CrossData(new Location(world,location.x-30,location.y,location.z),CrossStructureType.XR);
-                                    CrossData c2 = new CrossData(new Location(world,location.x+30,location.y,location.z),CrossStructureType.XA);
-                                    CrossData c3 = new CrossData(new Location(world,location.x,location.y,location.z+30),CrossStructureType.ZA);
+                                    BOSS_ROOM_1_1.place(new Location(world, location.x(), location.y(), location.z()),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
+                                    CrossData c1 = new CrossData(new Location(world, location.x() -30, location.y(), location.z()),CrossStructureType.XR);
+                                    CrossData c2 = new CrossData(new Location(world, location.x() +30, location.y(), location.z()),CrossStructureType.XA);
+                                    CrossData c3 = new CrossData(new Location(world, location.x(), location.y(), location.z() +30),CrossStructureType.ZA);
                                     spawn.add(c1);
                                     spawn.add(c2);
                                     spawn.add(c3);
                                     boss++;
-                                    data.corners.add(new CornerData.Corner(location.x, location.y,location.z, location.x+29, location.y+5, location.z+29));
+                                    data.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() +29, location.y() +5, location.z() +29));
                                 }
                             }
                             case ZR -> {
@@ -512,15 +601,15 @@ public class ToolClass {
                                 data.corners.add(new CornerData.Corner(finalL1.l.getBlockX(),finalL1.l.getBlockY(),finalL1.l.getBlockZ(),finalL1.l.getBlockX()+29,finalL1.l.getBlockY()+5,finalL1.l.getBlockZ()+29));
                                 if(!rooms.contains(location)){
                                     rooms.add(location);
-                                    BOSS_ROOM_1_1.place(new Location(world,location.x,location.y,location.z),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
-                                    CrossData c1 = new CrossData(new Location(world,location.x+30,location.y,location.z),CrossStructureType.XA);
-                                    CrossData c2 = new CrossData(new Location(world,location.x-30,location.y,location.z),CrossStructureType.XR);
-                                    CrossData c3 = new CrossData(new Location(world,location.x,location.y,location.z-30),CrossStructureType.ZR);
+                                    BOSS_ROOM_1_1.place(new Location(world, location.x(), location.y(), location.z()),false,StructureRotation.NONE,Mirror.NONE,0,1,rand);
+                                    CrossData c1 = new CrossData(new Location(world, location.x() +30, location.y(), location.z()),CrossStructureType.XA);
+                                    CrossData c2 = new CrossData(new Location(world, location.x() -30, location.y(), location.z()),CrossStructureType.XR);
+                                    CrossData c3 = new CrossData(new Location(world, location.x(), location.y(), location.z() -30),CrossStructureType.ZR);
                                     spawn.add(c1);
                                     spawn.add(c2);
                                     spawn.add(c3);
                                     boss++;
-                                    data.corners.add(new CornerData.Corner(location.x, location.y,location.z, location.x+29, location.y+5, location.z+29));
+                                    data.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() +29, location.y() +5, location.z() +29));
                                 }
                             }
 
@@ -530,45 +619,45 @@ public class ToolClass {
             }
             for(EasyLocation location : rooms){
                 EasyLocation xamin,xamax,xrmin,xrmax,zamin,zamax,zrmin,zrmax;
-                xamin = new EasyLocation(location.x+29,location.y+1, location.z+14);
-                xamax = new EasyLocation(location.x+29, location.y+3,location.z+15);
-                xrmin = new EasyLocation(location.x,location.y+1, location.z+14);
-                xrmax = new EasyLocation(location.x, location.y+3, location.z+15);
-                zamin = new EasyLocation(location.x+14, location.y+1, location.z+29);
-                zamax = new EasyLocation(location.x+15, location.y+3, location.z+29);
-                zrmin = new EasyLocation(location.x+14,location.y+1,location.z);
-                zrmax = new EasyLocation(location.x+15, location.y+3,location.z);
-                if(!data.corners.contains(new CornerData.Corner(location.x+30, location.y, location.z, location.x+59, location.y+5, location.z+29))){
-                    for(int x = xamin.x;x<=xamax.x;x++){
-                        for(int y = xamin.y;y<=xamax.y;y++){
-                            for(int z = xamin.z;z<= xamax.z;z++){
+                xamin = new EasyLocation(location.x() +29, location.y() +1, location.z() +14);
+                xamax = new EasyLocation(location.x() +29, location.y() +3, location.z() +15);
+                xrmin = new EasyLocation(location.x(), location.y() +1, location.z() +14);
+                xrmax = new EasyLocation(location.x(), location.y() +3, location.z() +15);
+                zamin = new EasyLocation(location.x() +14, location.y() +1, location.z() +29);
+                zamax = new EasyLocation(location.x() +15, location.y() +3, location.z() +29);
+                zrmin = new EasyLocation(location.x() +14, location.y() +1, location.z());
+                zrmax = new EasyLocation(location.x() +15, location.y() +3, location.z());
+                if(!data.corners.contains(new CornerData.Corner(location.x() +30, location.y(), location.z(), location.x() +59, location.y() +5, location.z() +29))){
+                    for(int x = xamin.x(); x<= xamax.x(); x++){
+                        for(int y = xamin.y(); y<= xamax.y(); y++){
+                            for(int z = xamin.z(); z<= xamax.z(); z++){
                                 world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS,false);
                             }
                         }
                     }
                 }
-                if(!data.corners.contains(new CornerData.Corner(location.x-30, location.y, location.z, location.x-1, location.y+5, location.z+29))){
-                    for(int x = xrmin.x;x<=xrmax.x;x++){
-                        for(int y = xrmin.y;y<=xrmax.y;y++){
-                            for(int z = xrmin.z;z<= xrmax.z;z++){
+                if(!data.corners.contains(new CornerData.Corner(location.x() -30, location.y(), location.z(), location.x() -1, location.y() +5, location.z() +29))){
+                    for(int x = xrmin.x(); x<= xrmax.x(); x++){
+                        for(int y = xrmin.y(); y<= xrmax.y(); y++){
+                            for(int z = xrmin.z(); z<= xrmax.z(); z++){
                                 world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS,false);
                             }
                         }
                     }
                 }
-                if(!data.corners.contains(new CornerData.Corner(location.x, location.y, location.z+30, location.x+29, location.y+5, location.z+59))){
-                    for(int x = zamin.x;x<=zamax.x;x++){
-                        for(int y = zamin.y;y<=zamax.y;y++){
-                            for(int z = zamin.z;z<= zamax.z;z++){
+                if(!data.corners.contains(new CornerData.Corner(location.x(), location.y(), location.z() +30, location.x() +29, location.y() +5, location.z() +59))){
+                    for(int x = zamin.x(); x<= zamax.x(); x++){
+                        for(int y = zamin.y(); y<= zamax.y(); y++){
+                            for(int z = zamin.z(); z<= zamax.z(); z++){
                                 world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS,false);
                             }
                         }
                     }
                 }
-                if(!data.corners.contains(new CornerData.Corner(location.x, location.y, location.z-30, location.x+29, location.y+5, location.z-1))){
-                    for(int x = zrmin.x;x<=zrmax.x;x++){
-                        for(int y = zrmin.y;y<=zrmax.y;y++){
-                            for(int z = zrmin.z;z<= zrmax.z;z++){
+                if(!data.corners.contains(new CornerData.Corner(location.x(), location.y(), location.z() -30, location.x() +29, location.y() +5, location.z() -1))){
+                    for(int x = zrmin.x(); x<= zrmax.x(); x++){
+                        for(int y = zrmin.y(); y<= zrmax.y(); y++){
+                            for(int z = zrmin.z(); z<= zrmax.z(); z++){
                                 world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS,false);
                             }
                         }
@@ -580,8 +669,73 @@ public class ToolClass {
             }catch (Exception e){
                 e.printStackTrace();
             }
-            for(Player player : players)    {game_players.add(player.getUniqueId());player.sendTitle(ChatColor.GREEN + "地图生成完成","",10,40,40);}
+            Title title1 = Title.title(Component.text("地图生成完成",NamedTextColor.GREEN),
+                    Component.text().build(),
+                    Title.Times.times(
+                            Duration.ofMillis(500),
+                            Duration.ofMillis(2000),
+                            Duration.ofMillis(500)
+                    ));
+            for(Player player : players)    {game_players.add(player.getUniqueId());player.showTitle(title1);}
         }
 
+    }
+    public static void ShootLightningGun(Player p){
+        if(!lightningGunServiceMap.containsKey(p.getUniqueId())) return;
+        PlayerLightningGunService service = lightningGunServiceMap.get(p.getUniqueId());
+        int damage =  (int)Math.ceil(100 + 400* service.process);
+        Vector core = p.getEyeLocation().clone().add(p.getEyeLocation().getDirection().normalize().multiply(0.7)).toVector();
+        Vector dir = p.getEyeLocation().getDirection().normalize();
+        Vector reference = Math.abs(dir.getY()) > 0.99
+                ? new Vector(1, 0, 0)
+                : new Vector(0, 1, 0);
+
+        Vector u = dir.clone().crossProduct(reference).normalize();
+        Vector v = dir.clone().crossProduct(u).normalize();
+        World world = p.getWorld();
+        for(double x = 0;x<=6;x+=0.2){
+            Vector offset1 = u.clone().multiply(0.8*Math.sin(x)).add(v.clone().multiply(0.8*Math.cos(x)));
+            Vector p1 = core.clone().add(offset1).add(dir.clone().multiply(x));
+            Vector offset2 = u.clone().multiply(0.8*Math.sin(x+2*Math.PI/3)).add(v.clone().multiply(0.8*Math.cos(x+2*Math.PI/3)));
+            Vector p2 = core.clone().add(offset2).add(dir.clone().multiply(x));
+            Vector offset3 = u.clone().multiply(0.8*Math.sin(x+4*Math.PI/3)).add(v.clone().multiply(0.8*Math.cos(x+4*Math.PI/3)));
+            Vector p3 = core.clone().add(offset3).add(dir.clone().multiply(x));
+            world.spawnParticle(Particle.DUST,p1.toLocation(world),1,new Particle.DustOptions(typeColorMap.get(DamageType.LIGHTNING),1));
+            world.spawnParticle(Particle.DUST,p2.toLocation(world),1,new Particle.DustOptions(typeColorMap.get(DamageType.LIGHTNING),1));
+            world.spawnParticle(Particle.DUST,p3.toLocation(world),1,new Particle.DustOptions(typeColorMap.get(DamageType.LIGHTNING),1));
+            Vector axisPoint = core.clone().add(dir.clone().multiply(x));
+            world.spawnParticle(Particle.DUST, axisPoint.toLocation(world), 1,
+                    new Particle.DustOptions(typeColorMap.get(DamageType.LIGHTNING), 3));
+        }
+        List<Entity> entities = GetCyEntity(core,world,dir,6,1.2);
+        for(Entity entity : entities){
+            if(entity instanceof LivingEntity l){
+                if(l.getPersistentDataContainer().has(fromNamespaceKey("entity"))){
+
+                        typeMap.put(l.getUniqueId(),DamageType.LIGHTNING);
+                        l.damage(damage);
+                        l.setVelocity(dir.clone().multiply(0.6).setY(0.3));
+
+                }
+            }
+        }
+    }
+    public static List<Entity> GetCyEntity(Vector core, World world, Vector dire,double length,double r){
+        Vector axis = dire.clone().normalize();
+        double boxR = Math.sqrt(r*r+(length/2)*(length/2));
+        Location boxC = core.clone().add(axis.clone().multiply(length/2)).toLocation(world);
+        Collection<Entity> ans = world.getNearbyEntities(boxC,boxR,boxR,boxR);
+        List<Entity> result = new ArrayList<>();
+        for(Entity entity : ans){
+            Location center = entity.getBoundingBox().getCenter().toLocation(world);
+            Vector vel = center.toVector().subtract(core);
+            double along = vel.dot(axis);
+            if(along<0||along>length) continue;
+            double rq = vel.lengthSquared() - along*along;
+            if(rq<=r*r){
+                result.add(entity);
+            }
+        }
+        return result;
     }
 }
