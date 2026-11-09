@@ -41,6 +41,8 @@ public class ToolClass {
     public static ItemStack LightningGun = new ItemStack(Material.DIAMOND_HOE);
     public static ItemStack GrassSword = new ItemStack(Material.WOODEN_SWORD);
     public static ItemStack WaterBook = new ItemStack(Material.BOOK);
+    public static ItemStack FireBook = new ItemStack(Material.BOOK);
+    public static ItemStack Null = new ItemStack(Material.BARRIER);
     public static Map<UUID,Long> Shoot_timer = new HashMap<>();
     public static Map<UUID,DamageType> typeMap = new HashMap<>();
     public static Map<UUID,Map<DamageType,Integer>> entity_defence = new HashMap<>();
@@ -56,6 +58,7 @@ public class ToolClass {
     public static Map<UUID, PlayerRockDefenceTickTimer> rockDefenceTickTimerMap = new HashMap<>();
     public static Map<UUID, PlayerSkillService> skillServiceMap = new HashMap<>();
     public static Map<UUID,PlayerLightningGunService> lightningGunServiceMap = new HashMap<>();
+    public static Map<UUID,Integer> fireBookSkillTick = new HashMap<>();
     public static Map<UUID,Long> book_tick = new HashMap<>();
     public static Integer max_item_id = 0;
     public static List<UUID> game_players = new ArrayList<>();
@@ -206,6 +209,36 @@ public class ToolClass {
 
         WaterBook.setItemMeta(meta);
     }
+    static{
+        ItemMeta meta = FireBook.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("fire_book"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"ROCK");
+        pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,800);
+        Component name = Component.text("野火焚尽之契", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("如果一切都为时已晚，便让火来重置世间一切。右键发射一枚火球，击中敌人造成70点火元素伤害",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.FIRE),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.FIRE).asRGB()))))
+                ,Component.text("按住Shift+右键可以释放这本法器的技能",NamedTextColor.YELLOW)
+                ,Component.text("技能：接下来的10秒内，所有普通攻击都会向四周发射发射火球，并获得1000抗性和速度II效果",NamedTextColor.YELLOW)));
+
+        FireBook.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = Null.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("null"),PersistentDataType.BOOLEAN,true);
+        Component name = Component.text("滚木", NamedTextColor.LIGHT_PURPLE);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("很遗憾，这个箱子里没有任何东西，但又话说回来，极致的非酋有何尝不是另一种意义上的欧皇呢",NamedTextColor.YELLOW),Component.text("一次性用品，攻击任意一个非Boss敌人可以将其抹杀",NamedTextColor.YELLOW)));
+        Null.setItemMeta(meta);
+    }
     public static ItemStack fromItem(ItemStack stack){
         ItemStack s = stack.clone();
         ItemMeta meta = s.getItemMeta();
@@ -249,6 +282,9 @@ public class ToolClass {
         return ans;
     }
     public static void SpawnDamageEntity(int damage,World world,Location location,NamedTextColor color){
+        if(damage<=0){
+            return;
+        }
         TextDisplay entity = world.spawn(location, TextDisplay.class);
         entity.text(Component.text("-" + damage,color));
         entity.setBillboard(Display.Billboard.CENTER);
@@ -717,6 +753,30 @@ public class ToolClass {
                         l.setVelocity(dir.clone().multiply(0.6).setY(0.3));
 
                 }
+            }
+            if(entity.getPersistentDataContainer().has(fromNamespaceKey("grass"))){
+                Collection<Entity> entities1 = entity.getNearbyEntities(8,8,8);
+                LivingEntity goal = null;
+                double min = Double.MAX_VALUE;
+                for(Entity entity2 : entities1){
+                    if(entity2 instanceof LivingEntity ll){
+                        if(ll.getPersistentDataContainer().has(fromNamespaceKey("entity"))){
+                            if(ll.getLocation().distanceSquared(entity2.getLocation())<=min){
+                                min = ll.getLocation().distanceSquared(entity2.getLocation());
+                                goal = ll;
+
+                            }
+                        }
+                    }
+                }
+                if(goal != null){
+                    Integer d = entity.getPersistentDataContainer().get(fromNamespaceKey("grass"),PersistentDataType.INTEGER);
+                    if(d != null)
+                        new SeedLightningTickTimer(entity.getLocation(),goal,goal.getWorld(),d).runTaskTimer(PLUGIN,0,1);
+                }
+                ToolClass.fillCubeWithParticles(entity.getWorld(),entity.getLocation(),0.8,10,new Particle.DustOptions(Color.GREEN,3));
+                entity.getWorld().playSound(entity.getLocation(),Sound.BLOCK_GRASS_BREAK,1,1);
+                entity.remove();
             }
         }
     }

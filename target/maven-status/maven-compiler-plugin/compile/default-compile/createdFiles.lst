@@ -11,10 +11,12 @@ plugin\xiguananshan\mCDungeon\ticks\PhysicAttackTicksTimer.class
 plugin\xiguananshan\mCDungeon\ToolClass$2.class
 plugin\xiguananshan\mCDungeon\events\GunShotEvent.class
 plugin\xiguananshan\mCDungeon\data\CornerData.class
+plugin\xiguananshan\mCDungeon\ticks\FireBookSkillService.class
 plugin\xiguananshan\mCDungeon\ticks\GrassSwordSkillService.class
 plugin\xiguananshan\mCDungeon\ticks\PlayerLightningGunService.class
 plugin\xiguananshan\mCDungeon\ticks\GrassTickTimer.class
 plugin\xiguananshan\mCDungeon\ticks\WaterBookAttackService.class
+plugin\xiguananshan\mCDungeon\ticks\WaterBookSkillService.class
 plugin\xiguananshan\mCDungeon\ticks\ElementTypeTimer.class
 plugin\xiguananshan\mCDungeon\enums\DamageType.class
 plugin\xiguananshan\mCDungeon\enums\CrossStructureType.class

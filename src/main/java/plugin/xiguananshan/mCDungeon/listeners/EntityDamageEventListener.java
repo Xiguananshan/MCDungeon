@@ -3,13 +3,12 @@ package plugin.xiguananshan.mCDungeon.listeners;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -27,11 +26,14 @@ import java.util.*;
 public class EntityDamageEventListener implements Listener {
     @EventHandler
     public void run(EntityDamageEvent e){
+        if(e.getEntity() instanceof Item){
+            e.setCancelled(true);
+        }
         if(e.getEntity() instanceof LivingEntity l){
             PersistentDataContainer pdc = l.getPersistentDataContainer();
             if(e.getEntity() instanceof Player p){
                 Integer defence = ToolClass.defence.get(p.getUniqueId());
-                e.setDamage(e.getDamage()*(1d-0.6d*2/Math.PI*Math.atan(1/200f*defence)));
+                e.setDamage(e.getDamage()*(1d-2/Math.PI*Math.atan(1/200f*defence)));
                 return;
             }
 
@@ -62,7 +64,23 @@ public class EntityDamageEventListener implements Listener {
                 }
             }
             if(pdc.has(ToolClass.fromNamespaceKey("entity"))){
+                if(e.getDamageSource().getCausingEntity() instanceof Player p){
+                    if(p.getInventory().getItemInMainHand().getType() != Material.AIR){
+                        ItemMeta m = p.getInventory().getItemInMainHand().getItemMeta();
+                        assert m !=null;
+                        if(m.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("null"))){
+                            if(!pdc.has(ToolClass.fromNamespaceKey("boss"))){
+                                    p.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                                    if(l.getDeathSound() != null)
+                                        p.getWorld().playSound(p.getLocation(),l.getDeathSound(),3,1);
+                                    e.getEntity().remove();
 
+                            }
+
+                            return;
+                        }
+                    }
+                }
                 if(ToolClass.typeMap.containsKey(l.getUniqueId())){
                     DamageType t = ToolClass.typeMap.get(l.getUniqueId());
                     ToolClass.typeMap.remove(l.getUniqueId());
@@ -70,7 +88,7 @@ public class EntityDamageEventListener implements Listener {
                         Map<DamageType,Integer> ds = ToolClass.entity_defence.get(e.getEntity().getUniqueId());
                         if(ds.containsKey(t)){
                             Integer d = ds.get(t);
-                            e.setDamage(e.getDamage()*(1d-0.6d*2/Math.PI*Math.atan(1/200f*d)));
+                            e.setDamage(e.getDamage()*(1d-2/Math.PI*Math.atan(1/200f*d)));
                         }
                     }
                     if(t!=DamageType.PHYSIC){
@@ -473,4 +491,76 @@ public class EntityDamageEventListener implements Listener {
 
         }
     }
+    @EventHandler
+    public void explode(EntityExplodeEvent e){
+        if(e.getEntity() instanceof LargeFireball){
+            e.blockList().clear();
+            if(e.getEntity().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("fire_book"))){
+                List<Entity> entity = e.getEntity().getNearbyEntities(2,2,2);
+                for(Entity entity1 :entity){
+                    if(entity1.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("grass"))){
+                        Collection<Entity> entities = entity1.getNearbyEntities(1,1,1);
+                        for(Entity entity2 : entities){
+                            if(entity2 instanceof LivingEntity ll){
+                                if(ll.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
+                                    ToolClass.typeMap.put(ll.getUniqueId(),DamageType.FIRE);
+                                    ll.damage(30);
+                                }
+                            }
+                        }
+                        ToolClass.fillCubeWithParticles(entity1.getWorld(),entity1.getLocation(),0.8,10,new Particle.DustOptions(ToolClass.typeColorMap.get(DamageType.FIRE),3));
+                        entity1.getWorld().playSound(entity1.getLocation(),Sound.BLOCK_GRASS_BREAK,1,1);
+                        entity1.remove();
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+
+        if (event.getDamager() instanceof Fireball fireball) {
+            if (fireball.getPersistentDataContainer().has(
+                    ToolClass.fromNamespaceKey("fire_book"), PersistentDataType.BOOLEAN)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+        if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION
+                && event.getDamager() instanceof Fireball fireball) {
+            if (fireball.getPersistentDataContainer().has(
+                    ToolClass.fromNamespaceKey("fire_book"), PersistentDataType.BOOLEAN)) {
+                event.setCancelled(true);
+            }
+        }
+        if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION
+                && event.getDamager() instanceof Fireball fireball) {
+            if (fireball.getPersistentDataContainer().has(
+                    ToolClass.fromNamespaceKey("fire_book"), PersistentDataType.BOOLEAN)) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onFireballDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Fireball fireball)) return;
+        if(!event.getEntity().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
+            return;
+        }
+        if (!fireball.getPersistentDataContainer().has(
+                ToolClass.fromNamespaceKey("fire_book"), PersistentDataType.BOOLEAN)) {
+            return;
+        }
+        if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) {
+            if(event.getEntity() instanceof LivingEntity l){
+                ToolClass.typeMap.put(l.getUniqueId(),DamageType.FIRE);
+                l.damage(70);
+            }
+        }
+        event.setDamage(0);
+    }
+
 }

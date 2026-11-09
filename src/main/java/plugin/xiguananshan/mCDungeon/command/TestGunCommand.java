@@ -17,6 +17,8 @@ public class TestGunCommand implements CommandExecutor {
             p.getInventory().addItem(ToolClass.fromItem(ToolClass.LightningGun));
             p.getInventory().addItem(ToolClass.fromItem(ToolClass.GrassSword));
             p.getInventory().addItem(ToolClass.fromItem(ToolClass.WaterBook));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.Null));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.FireBook));
         }
         return false;
     }

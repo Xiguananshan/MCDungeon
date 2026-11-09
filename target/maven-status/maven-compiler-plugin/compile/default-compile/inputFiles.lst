@@ -21,6 +21,7 @@ C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeo
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\DamageTextTick.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\ElementTypeTimer.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\EntityDefenceService.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\FireBookSkillService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\FreezeTicksTimer.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\GrassSwordSkillService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\GrassTickTimer.java
@@ -36,5 +37,6 @@ C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeo
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\StoneService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\StoneSkillService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\WaterBookAttackService.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\WaterBookSkillService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\WindHoleService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ToolClass.java

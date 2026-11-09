@@ -33,6 +33,7 @@ public final class MCDungeon extends JavaPlugin {
         new PhysicAttackTicksTimer().runTaskTimer(this,0,1);
         new EntityDefenceService().runTaskTimer(this,0,1);
         new GrassSwordSkillService().runTaskTimer(this,0,1);
+        new FireBookSkillService().runTaskTimer(this,0,1);
         // Plugin startup logic
     }
 

@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Vector;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 import plugin.xiguananshan.mCDungeon.ticks.*;
@@ -115,6 +116,15 @@ public class PlayerUseItemEventListener implements Listener {
                                 }
                                 e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.BLOCK_LEAF_LITTER_PLACE,3,1);
                             }
+                            if(pdc.has(ToolClass.fromNamespaceKey("water_book"))){
+                                e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.BLOCK_BREWING_STAND_BREW,3,1);
+                                new WaterBookSkillService(e.getPlayer()).runTaskTimer(ToolClass.PLUGIN,0,1);
+                            }
+                            if(pdc.has(ToolClass.fromNamespaceKey("fire_book"))){
+                                e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.BLOCK_FIRE_EXTINGUISH,3,1);
+                                ToolClass.fireBookSkillTick.put(e.getPlayer().getUniqueId(),200);
+                                ToolClass.defence.put(e.getPlayer().getUniqueId(),ToolClass.defence.get(e.getPlayer().getUniqueId())+1000);
+                            }
 
                             service.addCold(id,skill);
                             return;
@@ -163,6 +173,50 @@ public class PlayerUseItemEventListener implements Listener {
                     }
                 }
 
+            }
+            if(pdc.has(ToolClass.fromNamespaceKey("fire_book"))){
+                if(!ToolClass.book_tick.containsKey(e.getPlayer().getUniqueId())){
+                    Vector dir = e.getPlayer().getEyeLocation().getDirection().normalize();
+                    LargeFireball fireball = e.getPlayer().launchProjectile(LargeFireball.class,dir.multiply(1.5f)) ;
+                    fireball.setIsIncendiary(false);
+                    fireball.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("fire_book"),PersistentDataType.BOOLEAN,true);
+                    e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_GHAST_SHOOT,1,1);
+                    if(ToolClass.fireBookSkillTick.containsKey(e.getPlayer().getUniqueId())){
+                        Location center = e.getPlayer().getLocation().add(0,1,0);
+                        for(int i = 0;i<6;i++){
+                            double a = 2*Math.PI*i/6;
+                            Vector dire = new Vector(Math.cos(a),0,Math.sin(a)).normalize();
+                            Location spawn = center.clone().add(dire.clone().multiply(1.5f));
+                            LargeFireball fireball1 = e.getPlayer().getWorld().spawn(spawn,LargeFireball.class);
+                            fireball1.setInvulnerable(false);
+                            fireball1.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("fire_book"),PersistentDataType.BOOLEAN,true);
+                            fireball1.setDirection(dire.clone().multiply(1.5f));
+                        }
+                    }
+                    ToolClass.book_tick.put(e.getPlayer().getUniqueId(),System.currentTimeMillis());
+                }else{
+                    Long now = System.currentTimeMillis();
+                    if(now - ToolClass.book_tick.get(e.getPlayer().getUniqueId()) >= 400){
+                        Vector dir = e.getPlayer().getEyeLocation().getDirection().normalize();
+                        LargeFireball fireball = e.getPlayer().launchProjectile(LargeFireball.class,dir.multiply(1.5f)) ;
+                        fireball.setIsIncendiary(false);
+                        fireball.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("fire_book"),PersistentDataType.BOOLEAN,true);
+                        e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_GHAST_SHOOT,1,1);
+                        if(ToolClass.fireBookSkillTick.containsKey(e.getPlayer().getUniqueId())){
+                            Location center = e.getPlayer().getLocation().add(0,1,0);
+                            for(int i = 0;i<6;i++){
+                                double a = 2*Math.PI*i/6;
+                                Vector dire = new Vector(Math.cos(a),0,Math.sin(a)).normalize();
+                                Location spawn = center.clone().add(dire.clone().multiply(1.5f));
+                                LargeFireball fireball1 = e.getPlayer().getWorld().spawn(spawn,LargeFireball.class);
+                                fireball1.setInvulnerable(false);
+                                fireball1.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("fire_book"),PersistentDataType.BOOLEAN,true);
+                                fireball1.setDirection(dire.clone().multiply(1.5f));
+                            }
+                        }
+                        ToolClass.book_tick.put(e.getPlayer().getUniqueId(),System.currentTimeMillis());
+                    }
+                }
             }
             if(pdc.has(ToolClass.fromNamespaceKey("count"))){
                 Integer k = pdc.get(ToolClass.fromNamespaceKey("count"),PersistentDataType.INTEGER);
