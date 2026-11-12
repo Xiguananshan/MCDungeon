@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -29,6 +30,17 @@ public class EntityDamageEventListener implements Listener {
         if(e.getEntity() instanceof Item){
             e.setCancelled(true);
         }
+        if(e.getEntity().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))
+                && isFireBookFireballDamage(e)){
+            e.setDamage(0);
+            return;
+        }
+        if(e.getEntity().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))
+                && isIceBowArrowDamage(e)){
+            e.setDamage(0);
+            return;
+        }
+
         if(e.getEntity() instanceof LivingEntity l){
             PersistentDataContainer pdc = l.getPersistentDataContainer();
             if(e.getEntity() instanceof Player p){
@@ -36,7 +48,22 @@ public class EntityDamageEventListener implements Listener {
                 e.setDamage(e.getDamage()*(1d-2/Math.PI*Math.atan(1/200f*defence)));
                 return;
             }
-
+            if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("friend"))){
+                if(e.getDamageSource().getCausingEntity() instanceof Player p){
+                    e.setCancelled(true);
+                    return;
+                }
+                Integer k = l.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER);
+                if(k!=null){
+                    k-=(int)Math.ceil(e.getDamage());
+                    l.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER,k);
+                    e.setDamage(0);
+                    if(k<=0){
+                        l.setHealth(0);
+                    }
+                    return;
+                }
+            }
             if(e.getDamageSource().getCausingEntity() != null){
                 if(e.getDamageSource().getCausingEntity() instanceof Player p){
                     ItemStack stack = p.getInventory().getItemInMainHand();
@@ -61,6 +88,9 @@ public class EntityDamageEventListener implements Listener {
                             }
                         }
                     }
+                }
+                if(e.getDamageSource().getCausingEntity().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("friend"))){
+                    e.setDamage(e.getDamage()*15);
                 }
             }
             if(pdc.has(ToolClass.fromNamespaceKey("entity"))){
@@ -519,8 +549,11 @@ public class EntityDamageEventListener implements Listener {
 
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof Player)) return;
-
+        if (!(event.getEntity() instanceof Player || event.getEntity().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("friend")))) return;
+        if(event.getDamager() instanceof Player){
+            event.setCancelled(true);
+            return;
+        }
         if (event.getDamager() instanceof Fireball fireball) {
             if (fireball.getPersistentDataContainer().has(
                     ToolClass.fromNamespaceKey("fire_book"), PersistentDataType.BOOLEAN)) {
@@ -563,4 +596,49 @@ public class EntityDamageEventListener implements Listener {
         event.setDamage(0);
     }
 
+    private static boolean isFireBookFireballDamage(EntityDamageEvent event) {
+        return event instanceof EntityDamageByEntityEvent byEntity
+                && isFireBookFireball(byEntity.getDamager());
+    }
+
+    private static boolean isFireBookFireball(Entity entity) {
+        return entity instanceof Fireball fireball
+                && fireball.getPersistentDataContainer().has(
+                        ToolClass.fromNamespaceKey("fire_book"), PersistentDataType.BOOLEAN);
+    }
+
+    private static boolean isIceBowArrowDamage(EntityDamageEvent event) {
+        return event instanceof EntityDamageByEntityEvent byEntity
+                && isIceBowArrow(byEntity.getDamager());
+    }
+
+    private static boolean isIceBowArrow(Entity entity) {
+        return entity instanceof AbstractArrow arrow
+                && (arrow.getPersistentDataContainer().has(
+                ToolClass.fromNamespaceKey("ice_bow_arrow"), PersistentDataType.BOOLEAN) || arrow.getPersistentDataContainer().has(
+                ToolClass.fromNamespaceKey("ice_skill_arrow"), PersistentDataType.BOOLEAN));
+    }
+
+    @EventHandler
+    public void Hit(ProjectileHitEvent e){
+        if(e.getEntity() instanceof AbstractArrow arrow){
+            if(arrow.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("ice_bow_arrow"))){
+                if(e.getHitEntity() instanceof LivingEntity l){
+                    if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
+                        ToolClass.typeMap.put(l.getUniqueId(),DamageType.ICE);
+                        l.damage(300);
+                        e.getHitEntity().setVelocity(arrow.getVelocity().multiply(0.3f).setY(0.3f));
+                    }
+                }
+            }
+            if(arrow.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("ice_skill_arrow"))){
+                if(e.getHitEntity() instanceof LivingEntity l){
+                    if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
+                        ToolClass.typeMap.put(l.getUniqueId(),DamageType.ICE);
+                        l.damage(150);
+                    }
+                }
+            }
+        }
+    }
 }

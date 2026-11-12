@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import plugin.xiguananshan.mCDungeon.command.GenerateTestCommand;
+import plugin.xiguananshan.mCDungeon.command.TestChestCommand;
 import plugin.xiguananshan.mCDungeon.command.TestCommand;
 import plugin.xiguananshan.mCDungeon.command.TestGunCommand;
 import plugin.xiguananshan.mCDungeon.listeners.*;
@@ -23,9 +24,13 @@ public final class MCDungeon extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerPickItemEventListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(),this);
         getServer().getPluginManager().registerEvents(new PotionBreakEventListener(),this);
+        getServer().getPluginManager().registerEvents(new IceBowListener(),this);
+        getServer().getPluginManager().registerEvents(new FriendWardenListener(),this);
+        getServer().getPluginManager().registerEvents(new PlayerOpenChestEventListener(),this);
         getCommand("test").setExecutor(new TestCommand());
         getCommand("test_gun").setExecutor(new TestGunCommand());
         getCommand("generate").setExecutor(new GenerateTestCommand());
+        getCommand("chest").setExecutor(new TestChestCommand());
         new ElementTypeTimer().runTaskTimer(this,0,1);
         new FreezeTicksTimer().runTaskTimer(this,0,1);
         new GrassTickTimer().runTaskTimer(this,0,1);
@@ -34,6 +39,9 @@ public final class MCDungeon extends JavaPlugin {
         new EntityDefenceService().runTaskTimer(this,0,1);
         new GrassSwordSkillService().runTaskTimer(this,0,1);
         new FireBookSkillService().runTaskTimer(this,0,1);
+        new BowService().runTaskTimer(this,0,1);
+        new BowIceSkillService().runTaskTimer(this,0,1);
+        new FriendService().runTaskTimer(this,0,1);
         // Plugin startup logic
     }
 

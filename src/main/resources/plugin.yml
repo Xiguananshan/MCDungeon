@@ -10,3 +10,5 @@ commands:
     description: A test command.
   generate:
     description: A test command.
+  chest:
+    description: A test command.

@@ -6,6 +6,9 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.Color;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.enchantments.Enchantment;
@@ -43,6 +46,12 @@ public class ToolClass {
     public static ItemStack WaterBook = new ItemStack(Material.BOOK);
     public static ItemStack FireBook = new ItemStack(Material.BOOK);
     public static ItemStack Null = new ItemStack(Material.BARRIER);
+    public static ItemStack IceBow = new ItemStack(Material.BOW);
+    public static ItemStack IceBowArrow = new ItemStack(Material.ARROW);
+    public static ItemStack PhysicSword = new ItemStack(Material.IRON_SWORD);
+    public static ItemStack GodSpawner = new ItemStack(Material.COMMAND_BLOCK);
+    public static ItemStack ElementStone = new ItemStack(Material.AMETHYST_SHARD);
+    public static Map<ItemStack,Float> itemPool = new HashMap<>();
     public static Map<UUID,Long> Shoot_timer = new HashMap<>();
     public static Map<UUID,DamageType> typeMap = new HashMap<>();
     public static Map<UUID,Map<DamageType,Integer>> entity_defence = new HashMap<>();
@@ -60,6 +69,7 @@ public class ToolClass {
     public static Map<UUID,PlayerLightningGunService> lightningGunServiceMap = new HashMap<>();
     public static Map<UUID,Integer> fireBookSkillTick = new HashMap<>();
     public static Map<UUID,Long> book_tick = new HashMap<>();
+    public static Map<UUID,Integer> IceBowSkillTick = new HashMap<>();
     public static Integer max_item_id = 0;
     public static List<UUID> game_players = new ArrayList<>();
     public static Structure CROSS_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("cross_north"));
@@ -216,7 +226,7 @@ public class ToolClass {
         meta.addEnchant(Enchantment.SHARPNESS,1,true);
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(fromNamespaceKey("fire_book"),PersistentDataType.BOOLEAN,true);
-        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"ROCK");
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"FIRE");
         pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,800);
         Component name = Component.text("野火焚尽之契", NamedTextColor.GOLD);
         meta.displayName(name);
@@ -239,11 +249,145 @@ public class ToolClass {
         meta.lore(List.of(Component.text("很遗憾，这个箱子里没有任何东西，但又话说回来，极致的非酋有何尝不是另一种意义上的欧皇呢",NamedTextColor.YELLOW),Component.text("一次性用品，攻击任意一个非Boss敌人可以将其抹杀",NamedTextColor.YELLOW)));
         Null.setItemMeta(meta);
     }
+    static{
+        ItemMeta meta = GodSpawner.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("god_spawner"),PersistentDataType.BOOLEAN,true);
+        Component name = Component.text("神临", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("神的降临从来不需要理由",NamedTextColor.YELLOW),Component.text("一次性用品，召唤一个400血的僵尸为你而战，僵尸穿戴下界合金套装并备有锋利V的下界合金剑，每一秒损失5点生命值",NamedTextColor.YELLOW)));
+        GodSpawner.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = IceBow.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.INFINITY,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("ice_bow"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"ICE");
+        pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,1000);
+        Component name = Component.text("雪国冰霜之弓", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("寒风呼啸而过，雪中打猎的猎人已经拉满的弦。射出箭矢对敌人造成300冰元素伤害",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.ICE),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.ICE).asRGB()))))
+                ,Component.text("按住Shift+右键可以释放这把弓的技能",NamedTextColor.YELLOW)
+                ,Component.text("技能：在接下来的5秒内，无需拉弓，只需要右键就能射出一发箭，每发箭造成150点冰元素伤害（没有击退）",NamedTextColor.YELLOW)));
+
+        IceBow.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = IceBowArrow.getItemMeta();
+        assert meta != null;
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("ice_bow_arrow"),PersistentDataType.BOOLEAN,true);
+        meta.displayName(Component.text("箭", NamedTextColor.WHITE));
+        meta.lore(List.of(Component.text("与弓绑定的箭矢",NamedTextColor.YELLOW)
+                ,Component.text("射出的箭无法拾取，自身也不会被消耗",NamedTextColor.YELLOW)));
+        meta.setEnchantmentGlintOverride(true);
+        IceBowArrow.setItemMeta(meta);
+    }
+    static {
+        ItemMeta meta = ElementStone.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("element_stone"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("random_element"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("no_element"),PersistentDataType.BOOLEAN,true);
+        Component name = Component.text("元素晶石", NamedTextColor.BLUE);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("一个汲取了元素力精华的晶石，可以用来强化武器",NamedTextColor.YELLOW),Component.text("消耗品，将要进行元素附魔的武器放置在副手，右键此道具可以对其进行元素附魔",NamedTextColor.YELLOW)));
+        ElementStone.setItemMeta(meta);
+    }
+    static{
+        ItemMeta meta = PhysicSword.getItemMeta();
+        assert meta != null;
+        meta.setUnbreakable(true);
+        meta.addEnchant(Enchantment.SHARPNESS,1,true);
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(fromNamespaceKey("physic_sword"),PersistentDataType.BOOLEAN,true);
+        pdc.set(fromNamespaceKey("element"),PersistentDataType.STRING,"PHYSIC");
+        pdc.set(fromNamespaceKey("sword"),PersistentDataType.INTEGER,280);
+        pdc.set(fromNamespaceKey("skill"),PersistentDataType.INTEGER,1000);
+        pdc.set(fromNamespaceKey("no_element"),PersistentDataType.BOOLEAN,true);
+        Component name = Component.text("遗愿终成之刀", NamedTextColor.GOLD);
+        meta.displayName(name);
+        meta.lore(List.of(Component.text("得到元素祝福的愿望终会达成，一定会的。攻击造成280点物理伤害",NamedTextColor.YELLOW)
+                ,Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.PHYSIC),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(DamageType.PHYSIC).asRGB()))))
+                ,Component.text("按住Shift+右键可以释放这把剑的技能",NamedTextColor.YELLOW),Component.text("技能：在上方生成一把铁剑，1秒后落下，落地产生冲击波，造成1500点物理伤害",NamedTextColor.YELLOW)
+                ,Component.text("该武器无法被元素晶石强化",NamedTextColor.RED)
+                        )
+                );
+
+
+        PhysicSword.setItemMeta(meta);
+    }
+    static {
+        itemPool.put(DefaultGun, 0.90f);
+        itemPool.put(ElementStone, 0.65f);
+        itemPool.put(WindSword, 0.015f);
+        itemPool.put(StoneBook, 0.015f);
+        itemPool.put(GrassSword, 0.015f);
+        itemPool.put(LightningGun, 0.015f);
+        itemPool.put(WaterBook, 0.015f);
+        itemPool.put(FireBook, 0.015f);
+        itemPool.put(IceBow, 0.015f);
+        itemPool.put(PhysicSword, 0.015f);
+        itemPool.put(GodSpawner, 0.015f);
+    }
+    public static boolean isIceBow(ItemStack stack){
+        if(stack == null || stack.getType() != Material.BOW) return false;
+        ItemMeta meta = stack.getItemMeta();
+        return meta != null && meta.getPersistentDataContainer()
+                .has(fromNamespaceKey("ice_bow"),PersistentDataType.BOOLEAN);
+    }
+    public static boolean isIceBowArrow(ItemStack stack){
+        if(stack == null || stack.getType() != Material.ARROW) return false;
+        ItemMeta meta = stack.getItemMeta();
+        return meta != null && meta.getPersistentDataContainer()
+                .has(fromNamespaceKey("ice_bow_arrow"),PersistentDataType.BOOLEAN);
+    }
+    public static boolean giveIceBowArrow(Player p){
+        NamespacedKey granted = fromNamespaceKey("ice_bow_arrow_granted");
+        PersistentDataContainer pdc = p.getPersistentDataContainer();
+        if(pdc.has(granted,PersistentDataType.BOOLEAN)) return false;
+        for(ItemStack stack : p.getInventory().getContents()){
+            if(isIceBowArrow(stack)){
+                pdc.set(granted,PersistentDataType.BOOLEAN,true);
+                return false;
+            }
+        }
+        int slot = p.getInventory().firstEmpty();
+        if(slot < 0) return false;
+        p.getInventory().setItem(slot,IceBowArrow.clone());
+        pdc.set(granted,PersistentDataType.BOOLEAN,true);
+        return true;
+    }
     public static ItemStack fromItem(ItemStack stack){
         ItemStack s = stack.clone();
         ItemMeta meta = s.getItemMeta();
         assert meta != null;
         meta.getPersistentDataContainer().set(fromNamespaceKey("id"),PersistentDataType.INTEGER,max_item_id);
+        if(meta.getPersistentDataContainer().has(fromNamespaceKey("random_element"))){
+            Random random = new Random();
+            DamageType t = DamageType.PHYSIC;
+            while(t == DamageType.PHYSIC || t == DamageType.EXPLODE){
+                t = DamageType.values()[random.nextInt(DamageType.values().length)];
+            }
+            meta.getPersistentDataContainer().set(fromNamespaceKey("element"),PersistentDataType.STRING,t.toString());
+            List<Component> lore = meta.lore();
+            if(lore!=null){
+                lore.add(Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(t),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(t).asRGB())))));
+            }else{
+                lore = List.of(Component.text("元素：",NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(t),NamedTextColor.nearestTo(TextColor.color(typeColorMap.get(t).asRGB())))));
+            }
+            meta.lore(lore);
+        }
         max_item_id++;
         s.setItemMeta(meta);
         return s;

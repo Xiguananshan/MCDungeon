@@ -1,8 +1,12 @@
 package plugin.xiguananshan.mCDungeon.listeners;
 
+import com.destroystokyo.paper.entity.ai.GoalType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,14 +18,21 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
+import plugin.xiguananshan.mCDungeon.goals.FriendAttackGoal;
+import plugin.xiguananshan.mCDungeon.goals.FriendRandomGoal;
 import plugin.xiguananshan.mCDungeon.ticks.*;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class PlayerUseItemEventListener implements Listener {
     @EventHandler
@@ -125,10 +136,135 @@ public class PlayerUseItemEventListener implements Listener {
                                 ToolClass.fireBookSkillTick.put(e.getPlayer().getUniqueId(),200);
                                 ToolClass.defence.put(e.getPlayer().getUniqueId(),ToolClass.defence.get(e.getPlayer().getUniqueId())+1000);
                             }
+                            if(pdc.has(ToolClass.fromNamespaceKey("ice_bow"))){
+                                e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.BLOCK_GLASS_BREAK,3,1);
+                                ToolClass.IceBowSkillTick.put(e.getPlayer().getUniqueId(),100);
+                            }
+                            if(pdc.has(ToolClass.fromNamespaceKey("physic_sword"))){
+                                Location spawn = e.getPlayer().getLocation().clone().add(0,1.5f,0);
+                                spawn.setPitch(0f);
+                                ItemDisplay display = e.getPlayer().getWorld().spawn(spawn,ItemDisplay.class);
+                                display.setItemStack(new ItemStack(Material.IRON_SWORD));
+                                Transformation transformation = display.getTransformation();
+
+                                transformation.getRightRotation().set(new AxisAngle4f(
+                                        (float) Math.toRadians(135), 0f, 0f, 1f
+                                ));
+                                transformation.getScale().set(new Vector3f(0.8f,0.8f,0.8f));
+                                display.setTransformation(transformation);
+                                e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.ENTITY_ILLUSIONER_CAST_SPELL,3,1);
+                                new PhysicSwordSkillService(display).runTaskTimer(ToolClass.PLUGIN,0,1);
+                            }
 
                             service.addCold(id,skill);
                             return;
                         }
+                    }
+                }
+            }
+            if(pdc.has(ToolClass.fromNamespaceKey("god_spawner"))){
+                e.getPlayer().getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                e.setCancelled(true);
+                Zombie zombie = e.getPlayer().getWorld().spawn(e.getPlayer().getLocation(), Zombie.class);
+                Bukkit.getMobGoals().removeAllGoals(zombie, GoalType.TARGET);
+                Bukkit.getMobGoals().addGoal(zombie,0,new FriendAttackGoal(zombie));
+                Bukkit.getMobGoals().addGoal(zombie,2,new FriendRandomGoal(zombie,1));
+                zombie.getEquipment().setHelmet(new ItemStack(Material.NETHERITE_HELMET){{
+                    ItemMeta meta1 = getItemMeta();
+                    assert meta1 != null;
+                    meta1.setUnbreakable(true);
+                    setItemMeta(meta1);
+                }});
+                zombie.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE){{
+                    ItemMeta meta1 = getItemMeta();
+                    assert meta1 != null;
+                    meta1.setUnbreakable(true);
+                    setItemMeta(meta1);
+                }});
+                zombie.getEquipment().setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS){{
+                    ItemMeta meta1 = getItemMeta();
+                    assert meta1 != null;
+                    meta1.setUnbreakable(true);
+                    setItemMeta(meta1);
+                }});
+                zombie.getEquipment().setBoots(new ItemStack(Material.NETHERITE_BOOTS){{
+                    ItemMeta meta1 = getItemMeta();
+                    assert meta1 != null;
+                    meta1.setUnbreakable(true);
+                    setItemMeta(meta1);
+                }});
+                zombie.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD){{
+                    ItemMeta meta1 = getItemMeta();
+                    assert meta1 != null;
+                    meta1.setUnbreakable(true);
+                    meta1.addEnchant(Enchantment.SHARPNESS,5,true);
+                    setItemMeta(meta1);
+                }});
+                zombie.getEquipment().setChestplateDropChance(0);
+                zombie.getEquipment().setLeggingsDropChance(0);
+                zombie.getEquipment().setHelmetDropChance(0);
+                zombie.getEquipment().setBootsDropChance(0);
+                zombie.getEquipment().setItemInMainHandDropChance(0);
+                zombie.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("friend"),PersistentDataType.BOOLEAN,true);
+                zombie.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER,400);
+                zombie.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("limit_live"),PersistentDataType.BOOLEAN,true);
+                zombie.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("hurt"),PersistentDataType.INTEGER,5);
+                Objects.requireNonNull(zombie.getAttribute(Attribute.MOVEMENT_SPEED)).setBaseValue(0.5);
+                e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.ENTITY_WITHER_SPAWN,3,1);
+            }
+            if(pdc.has(ToolClass.fromNamespaceKey("element_stone"))){
+                ItemStack stack = e.getPlayer().getInventory().getItemInOffHand();
+                if(stack.getType() != Material.AIR) {
+                    ItemMeta m  = stack.getItemMeta();
+                    assert m!=null;
+                    if(m.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("element"),PersistentDataType.STRING)){
+                        if(m.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("no_element"))){
+                            e.getPlayer().sendMessage(Component.text("无法附魔此物品",NamedTextColor.RED));
+                            e.getPlayer().playSound(e.getPlayer(),Sound.BLOCK_NOTE_BLOCK_HARP,1,1);
+                            return;
+                        }
+                        String type = m.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("element"),PersistentDataType.STRING);
+                        assert type != null;
+                        if(type.equals ("PHYSIC")){
+                            String stone_type = meta.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("element"),PersistentDataType.STRING);
+                            assert stone_type != null;
+                            m.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("element"),PersistentDataType.STRING,stone_type);
+                            List<Component> lore = m.lore();
+                            DamageType damageType = DamageType.valueOf(stone_type);
+                            if(lore == null){
+                                lore = List.of(
+                                        Component.text("元素：",NamedTextColor.YELLOW)
+                                                .append(
+                                                        Component.text(ToolClass.typeNameMap.get(damageType)
+                                                                ,NamedTextColor.nearestTo(TextColor.color(ToolClass.typeColorMap.get(damageType).asRGB())))));
+
+                            }else{
+                                if(lore.size()<2){
+                                    lore.add(Component.text("元素：",NamedTextColor.YELLOW)
+                                            .append(
+                                                    Component.text(ToolClass.typeNameMap.get(damageType)
+                                                            ,NamedTextColor.nearestTo(TextColor.color(ToolClass.typeColorMap.get(damageType).asRGB())))));
+
+                                }else{
+                                    lore.set(1,Component.text("元素：",NamedTextColor.YELLOW)
+                                            .append(
+                                                    Component.text(ToolClass.typeNameMap.get(damageType)
+                                                            ,NamedTextColor.nearestTo(TextColor.color(ToolClass.typeColorMap.get(damageType).asRGB())))));
+                                }
+                            }
+                            m.lore(lore);
+                            stack.setItemMeta(m);
+                            e.getPlayer().getInventory().setItemInMainHand(stack);
+                            e.getPlayer().getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+                            e.getPlayer().sendMessage(Component.text("附魔成功",NamedTextColor.GREEN));
+                            e.getPlayer().playSound(e.getPlayer(),Sound.BLOCK_ENCHANTMENT_TABLE_USE,1,1);
+                        }else{
+                            e.getPlayer().sendMessage(Component.text("该物品已被附魔",NamedTextColor.RED));
+                            e.getPlayer().playSound(e.getPlayer(),Sound.BLOCK_NOTE_BLOCK_HARP,1,1);
+                        }
+                    }else{
+                        e.getPlayer().sendMessage(Component.text("无法附魔此物品",NamedTextColor.RED));
+                        e.getPlayer().playSound(e.getPlayer(),Sound.BLOCK_NOTE_BLOCK_HARP,1,1);
                     }
                 }
             }
