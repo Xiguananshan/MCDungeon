@@ -1,11 +1,11 @@
 package plugin.xiguananshan.mCDungeon.ticks;
 
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import plugin.xiguananshan.mCDungeon.ToolClass;
@@ -26,7 +26,7 @@ public class LightningSkillService extends BukkitRunnable {
     public LightningSkillService(Player p){
         this.p = p;
         ticks = 0;
-        right = GetRight();
+        right = GetRight(p);
         dir = p.getEyeLocation().getDirection().normalize();
         this.world = p.getWorld();
         this.core = p.getEyeLocation();
@@ -51,6 +51,32 @@ public class LightningSkillService extends BukkitRunnable {
                     }
                 }
             }
+            if(entity instanceof Item){
+                if (entity.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("grass"))) {
+                    Collection<Entity> entities1 = entity.getNearbyEntities(8, 8, 8);
+                    LivingEntity goal = null;
+                    double min = Double.MAX_VALUE;
+                    for (Entity entity2 : entities1) {
+                        if (entity2 instanceof LivingEntity ll) {
+                            if (ll.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))) {
+                                if (ll.getLocation().distanceSquared(entity.getLocation()) <= min) {
+                                    min = ll.getLocation().distanceSquared(entity.getLocation());
+                                    goal = ll;
+
+                                }
+                            }
+                        }
+                    }
+                    if (goal != null) {
+                        Integer d = entity.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("grass"), PersistentDataType.INTEGER);
+                        if (d != null)
+                            new SeedLightningTickTimer(entity.getLocation(), goal, goal.getWorld(), d).runTaskTimer(ToolClass.PLUGIN, 0, 1);
+                    }
+                    ToolClass.fillCubeWithParticles(entity.getWorld(), entity.getLocation(), 0.8, 10, new Particle.DustOptions(Color.GREEN, 3));
+                    entity.getWorld().playSound(entity.getLocation(), Sound.BLOCK_GRASS_BREAK, 1, 1);
+                    entity.remove();
+                }
+            }
             uuids.add(entity.getUniqueId());
         }
         if(ticks>=60){
@@ -58,7 +84,7 @@ public class LightningSkillService extends BukkitRunnable {
         }
     }
 
-    public Vector GetRight(){
+    public static Vector GetRight(Player p){
         Vector up = new Vector(0,1,0);
         Vector dir = p.getEyeLocation().getDirection().normalize();
         if(Math.abs(dir.dot(up))>0.99){

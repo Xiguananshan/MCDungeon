@@ -1,5 +1,7 @@
 package plugin.xiguananshan.mCDungeon.listeners;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -35,5 +37,6 @@ public class PlayerJoinListener implements Listener {
             service.runTaskTimer(ToolClass.PLUGIN,0,1);
             ToolClass.lightningGunServiceMap.put(e.getPlayer().getUniqueId(),service);
         }
+        e.getPlayer().sendMessage(Component.text("输入/settings可以更改游戏设置", NamedTextColor.YELLOW));
     }
 }

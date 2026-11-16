@@ -94,6 +94,12 @@ public class EntityDamageEventListener implements Listener {
                 }
             }
             if(pdc.has(ToolClass.fromNamespaceKey("entity"))){
+                if(e.getDamageSource().getCausingEntity() instanceof LivingEntity ll){
+                    if(ll.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
+                        e.setCancelled(true);
+                        return;
+                    }
+                }
                 if(e.getDamageSource().getCausingEntity() instanceof Player p){
                     if(p.getInventory().getItemInMainHand().getType() != Material.AIR){
                         ItemMeta m = p.getInventory().getItemInMainHand().getItemMeta();

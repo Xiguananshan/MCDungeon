@@ -65,5 +65,11 @@
             <version>26.2.build.121-stable</version> <!-- 替换为你的目标版本 -->
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.jeff-media</groupId>
+            <artifactId>MorePersistentDataTypes</artifactId>
+            <version>2.4.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>
