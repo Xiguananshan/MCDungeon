@@ -132,6 +132,8 @@ public class ToolClass {
    public static Map<DamageType, Color> typeColorMap;
    public static Map<DamageType, String> typeNameMap;
    public static Map<ItemStack, CostData> ShopData;
+   public static Integer round = 1;
+   public static CornerData.Corner BossRoom;
 
    public static boolean isIceBow(ItemStack stack) {
       if (stack != null && stack.getType() == Material.BOW) {
@@ -431,13 +433,11 @@ public class ToolClass {
    public static void GenerateMap(List<Player> players, int type) {
       EntityRoomData = new CornerData();
       LiveCrossRoom = new CornerData();
-      gaming = true;
       if (type == 1) {
          game_players.clear();
          Title title = Title.title(Component.text("正在生成地图", NamedTextColor.YELLOW), Component.text().build(), Times.times(Duration.ofMillis(500L), Duration.ofMillis(2000L), Duration.ofMillis(500L)));
 
          for(Player player : players) {
-            game_players.add(player.getUniqueId());
             player.showTitle(title);
          }
 
@@ -548,6 +548,10 @@ public class ToolClass {
                      ++center;
                      EntityRoomData.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() + 29, location.y() + 5, location.z() + 29));
                   }
+                  if(s== ACTIVITY_ROOM_1_1){
+                     Random random = new Random();
+                     SpawnActivity(1,world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
+                  }
 
                   if (s == SHOP_ROOM_1_1) {
                      ++shop;
@@ -557,7 +561,7 @@ public class ToolClass {
                         Location loc = new Location(world, location.x() + 13, location.y() + 3, location.z() + 9 + z);
                         List<ItemStack> stacks = ShopData.keySet().stream().toList();
                         ItemStack stack = stacks.get(random.nextInt(stacks.size()));
-                        BuildStore(true, fromItem(stack), (ShopData.get(stack)).iron(), (ShopData.get(stack)).gold(), loc.clone().add(0.5F, 0.0F, 0.5F));
+                        BuildStore(stack.getType() != Material.GOLD_INGOT, fromItem(stack), (ShopData.get(stack)).iron(), (ShopData.get(stack)).gold(), loc.clone().add(0.5F, 0.0F, 0.5F));
                      }
                   }
 
@@ -593,6 +597,10 @@ public class ToolClass {
                      ++center;
                      EntityRoomData.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() + 29, location.y() + 5, location.z() + 29));
                   }
+                  if(s== ACTIVITY_ROOM_1_1){
+                     Random random = new Random();
+                     SpawnActivity(1,world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
+                  }
 
                   if (s == SHOP_ROOM_1_1) {
                      ++shop;
@@ -602,7 +610,7 @@ public class ToolClass {
                         Location loc = new Location(world, location.x() + 13, location.y() + 3, location.z() + 9 + z);
                         List<ItemStack> stacks = ShopData.keySet().stream().toList();
                         ItemStack stack = stacks.get(random.nextInt(stacks.size()));
-                        BuildStore(true, fromItem(stack), (ShopData.get(stack)).iron(), (ShopData.get(stack)).gold(), loc.clone().add(0.5F, 0.0F, 0.5F));
+                        BuildStore(stack.getType() != Material.GOLD_INGOT, fromItem(stack), (ShopData.get(stack)).iron(), (ShopData.get(stack)).gold(), loc.clone().add(0.5F, 0.0F, 0.5F));
                      }
                   }
 
@@ -638,6 +646,10 @@ public class ToolClass {
                      ++center;
                      EntityRoomData.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() + 29, location.y() + 5, location.z() + 29));
                   }
+                  if(s== ACTIVITY_ROOM_1_1){
+                     Random random = new Random();
+                     SpawnActivity(1,world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
+                  }
 
                   if (s == SHOP_ROOM_1_1) {
                      ++shop;
@@ -647,7 +659,7 @@ public class ToolClass {
                         Location loc = new Location(world, location.x() + 13, location.y() + 3, location.z() + 9 + z);
                         List<ItemStack> stacks = ShopData.keySet().stream().toList();
                         ItemStack stack = stacks.get(random.nextInt(stacks.size()));
-                        BuildStore(true, fromItem(stack), (ShopData.get(stack)).iron(), (ShopData.get(stack)).gold(), loc.clone().add(0.5F, 0.0F, 0.5F));
+                        BuildStore(stack.getType() != Material.GOLD_INGOT, fromItem(stack), (ShopData.get(stack)).iron(), (ShopData.get(stack)).gold(), loc.clone().add(0.5F, 0.0F, 0.5F));
                      }
                   }
 
@@ -681,6 +693,10 @@ public class ToolClass {
                         EntityRoomData.corners.add(new CornerData.Corner(location.x(), location.y(), location.z(), location.x() + 29, location.y() + 5, location.z() + 29));
                      }
 
+                     if(s== ACTIVITY_ROOM_1_1){
+                        Random random = new Random();
+                        SpawnActivity(1,world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
+                     }
                      if (s == SHOP_ROOM_1_1) {
                         ++shop;
                         Random random = new Random();
@@ -689,7 +705,7 @@ public class ToolClass {
                            Location loc = new Location(world, location.x() + 13, location.y() + 3, location.z() + 9 + z);
                            List<ItemStack> stacks = ShopData.keySet().stream().toList();
                            ItemStack stack = stacks.get(random.nextInt(stacks.size()));
-                           BuildStore(true, fromItem(stack), (ShopData.get(stack)).iron(), (ShopData.get(stack)).gold(), loc.clone().add(0.5F, 0.0F, 0.5F));
+                           BuildStore(stack.getType() != Material.GOLD_INGOT, fromItem(stack), (ShopData.get(stack)).iron(), (ShopData.get(stack)).gold(), loc.clone().add(0.5F, 0.0F, 0.5F));
                         }
                      }
 
@@ -853,7 +869,7 @@ public class ToolClass {
                }
             }
          }
-
+         BossRoom = new CornerData.Corner(boss_room.x(),boss_room.y(),boss_room.z(),boss_room.x()+29,boss_room.y()+5,boss_room.z()+29);
          for(EasyLocation location : rooms) {
             EasyLocation xamin = new EasyLocation(location.x() + 29, location.y() + 1, location.z() + 14);
             EasyLocation xamax = new EasyLocation(location.x() + 29, location.y() + 3, location.z() + 15);
@@ -867,7 +883,7 @@ public class ToolClass {
                for(int x = xamin.x(); x <= xamax.x(); ++x) {
                   for(int y = xamin.y(); y <= xamax.y(); ++y) {
                      for(int z = xamin.z(); z <= xamax.z(); ++z) {
-                        world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS, false);
+                        world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS, true);
                      }
                   }
                }
@@ -877,7 +893,7 @@ public class ToolClass {
                for(int x = xamin.x(); x <= xamax.x(); ++x) {
                   for(int y = xamin.y(); y <= xamax.y(); ++y) {
                      for(int z = xamin.z(); z <= xamax.z(); ++z) {
-                        world.getBlockAt(x, y, z).setType(Material.DARK_OAK_FENCE, false);
+                        world.getBlockAt(x, y, z).setType(Material.DARK_OAK_FENCE, true);
                      }
                   }
                }
@@ -890,7 +906,7 @@ public class ToolClass {
                for(int x = xrmin.x(); x <= xrmax.x(); ++x) {
                   for(int y = xrmin.y(); y <= xrmax.y(); ++y) {
                      for(int z = xrmin.z(); z <= xrmax.z(); ++z) {
-                        world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS, false);
+                        world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS, true);
                      }
                   }
                }
@@ -900,7 +916,7 @@ public class ToolClass {
                for(int x = xrmin.x(); x <= xrmax.x(); ++x) {
                   for(int y = xrmin.y(); y <= xrmax.y(); ++y) {
                      for(int z = xrmin.z(); z <= xrmax.z(); ++z) {
-                        world.getBlockAt(x, y, z).setType(Material.DARK_OAK_FENCE, false);
+                        world.getBlockAt(x, y, z).setType(Material.DARK_OAK_FENCE, true);
                      }
                   }
                }
@@ -913,7 +929,7 @@ public class ToolClass {
                for(int x = zamin.x(); x <= zamax.x(); ++x) {
                   for(int y = zamin.y(); y <= zamax.y(); ++y) {
                      for(int z = zamin.z(); z <= zamax.z(); ++z) {
-                        world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS, false);
+                        world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS, true);
                      }
                   }
                }
@@ -923,7 +939,7 @@ public class ToolClass {
                for(int x = zamin.x(); x <= zamax.x(); ++x) {
                   for(int y = zamin.y(); y <= zamax.y(); ++y) {
                      for(int z = zamin.z(); z <= zamax.z(); ++z) {
-                        world.getBlockAt(x, y, z).setType(Material.DARK_OAK_FENCE, false);
+                        world.getBlockAt(x, y, z).setType(Material.DARK_OAK_FENCE, true);
                      }
                   }
                }
@@ -936,7 +952,7 @@ public class ToolClass {
                for(int x = zrmin.x(); x <= zrmax.x(); ++x) {
                   for(int y = zrmin.y(); y <= zrmax.y(); ++y) {
                      for(int z = zrmin.z(); z <= zrmax.z(); ++z) {
-                        world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS, false);
+                        world.getBlockAt(x, y, z).setType(Material.STONE_BRICKS, true);
                      }
                   }
                }
@@ -946,7 +962,7 @@ public class ToolClass {
                for(int x = zrmin.x(); x <= zrmax.x(); ++x) {
                   for(int y = zrmin.y(); y <= zrmax.y(); ++y) {
                      for(int z = zrmin.z(); z <= zrmax.z(); ++z) {
-                        world.getBlockAt(x, y, z).setType(Material.DARK_OAK_FENCE, false);
+                        world.getBlockAt(x, y, z).setType(Material.DARK_OAK_FENCE, true);
                      }
                   }
                }
@@ -1075,9 +1091,9 @@ public class ToolClass {
       return ans;
    }
 
-   public static void SummonBoos(int id, Location loc) {
+   public static Mob SummonBoss(int id, Location loc) {
       switch (id) {
-         case 1:
+         case 1->{
             World world = loc.getWorld();
             Zombie zombie = world.spawn(loc, Zombie.class);
             zombie.getPersistentDataContainer().set(fromNamespaceKey("health"), PersistentDataType.INTEGER, 14000);
@@ -1099,9 +1115,14 @@ public class ToolClass {
             ZombieKingService service = new ZombieKingService(zombie);
             zombie.setCustomNameVisible(true);
             service.runTaskTimer(PLUGIN, 0L, 1L);
-            break;
-         default:
-            break;
+            return zombie;
+         }
+
+
+         default -> {return null;}
+
+
+
       }
    }
 
@@ -1308,7 +1329,7 @@ public class ToolClass {
       Component ss = Component.text("剩余弹药：", NamedTextColor.YELLOW).append(Component.text("10/10", NamedTextColor.GREEN));
       Component name = Component.text("普通枪", NamedTextColor.WHITE);
       meta.displayName(name);
-      meta.lore(List.of(Component.text("只是一把再普通不过的枪，射击敌人造成35伤害", NamedTextColor.YELLOW), Component.text("元素：", NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.PHYSIC), NamedTextColor.nearestTo(TextColor.color((typeColorMap.get(DamageType.PHYSIC)).asRGB())))), ss, Component.text("左键换弹", NamedTextColor.YELLOW)));
+      meta.lore(List.of(Component.text("只是一把再普通不过的枪，射击敌人造成80伤害", NamedTextColor.YELLOW), Component.text("元素：", NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.PHYSIC), NamedTextColor.nearestTo(TextColor.color((typeColorMap.get(DamageType.PHYSIC)).asRGB())))), ss, Component.text("左键换弹", NamedTextColor.YELLOW)));
       DefaultGun.setItemMeta(meta);
       meta = WindSword.getItemMeta();
 
@@ -1516,5 +1537,46 @@ public class ToolClass {
       ShopData.put(PhysicSword, new CostData(36, 20));
       ShopData.put(GodSpawner, new CostData(24, 15));
       ShopData.put(Gold, new CostData(20, 0));
+   }
+   public static void Start(){
+      ToolClass.gaming = true;
+      for(Entity entity : Bukkit.selectEntities(Bukkit.getConsoleSender(),"@e[type=!minecraft:player]")){
+         entity.remove();
+      }
+      List<Player> players = new ArrayList<>();
+      for(UUID uuid : game_players) {
+         Player player = Bukkit.getPlayer(uuid);
+         if(player!=null){
+            players.add(player);
+         }
+      }
+      ToolClass.requestMap.clear();
+      GenerateMap(players,1);
+      for(Player player : players)
+      {
+         player.teleport(new Location(player.getWorld(),14,101,14));
+         player.getInventory().addItem(fromItem(DefaultGun));
+      }
+   }
+   public static void NextRound(){
+      ToolClass.round++;
+      for(Entity entity : Bukkit.selectEntities(Bukkit.getConsoleSender(),"@e[type=!minecraft:player]")){
+         entity.remove();
+      }
+      List<Player> players = new ArrayList<>();
+      for(UUID uuid : game_players) {
+         Player player = Bukkit.getPlayer(uuid);
+         if(player!=null){
+            players.add(player);
+         }
+      }
+      ToolClass.requestMap.clear();
+      GenerateMap(players,1);
+      for(Player player : players){
+         player.teleport(new Location(player.getWorld(),14,101,14));
+      }
+   }
+   public static void Damage(Entity goal,Player source,int damage,DamageType t){
+
    }
 }

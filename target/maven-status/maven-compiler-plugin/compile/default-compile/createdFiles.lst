@@ -6,6 +6,7 @@ plugin\xiguananshan\mCDungeon\boss\SpawnService.class
 plugin\xiguananshan\mCDungeon\ticks\RockLifeTickTimer.class
 plugin\xiguananshan\mCDungeon\listeners\EntityDamageEventListener$1.class
 plugin\xiguananshan\mCDungeon\ticks\DamageTextTick.class
+plugin\xiguananshan\mCDungeon\ticks\BossBarService.class
 plugin\xiguananshan\mCDungeon\activity\LiveShop.class
 plugin\xiguananshan\mCDungeon\command\SettingsCommand.class
 plugin\xiguananshan\mCDungeon\listeners\PlayerUseItemEventListener$2.class
@@ -66,6 +67,7 @@ plugin\xiguananshan\mCDungeon\ticks\BowIceSkillService.class
 plugin\xiguananshan\mCDungeon\goals\FriendRandomGoal.class
 plugin\xiguananshan\mCDungeon\ticks\EntityRoomCheckService.class
 plugin\xiguananshan\mCDungeon\ticks\SpiderTargetService.class
+plugin\xiguananshan\mCDungeon\ticks\BossRoomService.class
 plugin\xiguananshan\mCDungeon\ticks\FriendService.class
 plugin\xiguananshan\mCDungeon\command\TestGunCommand.class
 plugin\xiguananshan\mCDungeon\boss\ZombieKingService$1.class

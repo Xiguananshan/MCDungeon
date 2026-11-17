@@ -1,5 +1,6 @@
 package plugin.xiguananshan.mCDungeon.ticks;
 
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -24,6 +25,9 @@ public class PlayerGameService extends BukkitRunnable {
                 if(!ToolClass.game_players.contains(p.getUniqueId())){
                     p.sendActionBar(Component.text("游戏已开始，请等待游戏结束", NamedTextColor.RED));
                 }else{
+                    if(p.getGameMode() != GameMode.ADVENTURE){
+                        continue;
+                    }
                     double x,y,z;
                     x = p.getX();
                     y = p.getY();
@@ -53,12 +57,47 @@ public class PlayerGameService extends BukkitRunnable {
                                     player.playSound(player, Sound.ENTITY_ENDER_DRAGON_AMBIENT,3,1);
                                 }
                             }
-                            new EntityRoomCheckService(corner,random.nextInt(36)+10,p.getWorld(), List.of(Zombie.class, Creeper.class, Spider.class, CaveSpider.class, Witch.class, Vindicator.class)).runTaskTimer(ToolClass.PLUGIN,0,1);
+                            new EntityRoomCheckService(corner,random.nextInt(8)+10,p.getWorld(), List.of(Zombie.class, Creeper.class, Spider.class, CaveSpider.class, Witch.class, Vindicator.class)).runTaskTimer(ToolClass.PLUGIN,0,1);
                             ToolClass.EntityRoomData.corners.remove(corner);
                             break;
                         }
 
                     }
+                    if(ToolClass.BossRoom != null){
+                        if(ToolClass.BossRoom.minx + margin <= x && x <= ToolClass.BossRoom.maxx - margin
+                                && ToolClass.BossRoom.miny <= y && y <= ToolClass.BossRoom.maxy
+                                && ToolClass.BossRoom.minz + margin <= z && z <= ToolClass.BossRoom.maxz - margin){
+
+                            Random random = new Random();
+                            Location safe = EntityRoomCheckService.findSafeLocation(p.getWorld(), ToolClass.BossRoom, random);
+                            if(safe == null){
+                                safe = p.getLocation().clone();
+                            }
+                            for(UUID uuid : ToolClass.game_players){
+                                Player player = Bukkit.getPlayer(uuid);
+                                if(player != null){
+                                    Title title = Title.title(Component.text("Fight", NamedTextColor.DARK_RED, TextDecoration.BOLD),
+                                            Component.text("ZombieKing", NamedTextColor.GOLD, TextDecoration.BOLD),
+                                            Title.Times.times(
+                                                    Duration.ofMillis(500),
+                                                    Duration.ofMillis(2000),
+                                                    Duration.ofMillis(500)
+                                            ));
+                                    player.showTitle(title);
+                                    player.teleport(safe);
+                                    player.playSound(player, Sound.ENTITY_ENDER_DRAGON_AMBIENT,3,1);
+                                }
+                            }
+                            EntityRoomCheckService.setAllDoors(Material.OAK_FENCE, p.getWorld());
+                            Mob mob = ToolClass.SummonBoss(1,new Location(p.getWorld(),ToolClass.BossRoom.minx + 14,ToolClass.BossRoom.miny+1,ToolClass.BossRoom.minz+14));
+                            assert mob != null;
+                            new BossRoomService(mob).runTaskTimer(ToolClass.PLUGIN,0,1);
+                            new BossBarService(mob,Component.text("ZombieKing", NamedTextColor.GOLD), BossBar.Color.RED).runTaskTimer(ToolClass.PLUGIN,0,1);
+                            ToolClass.BossRoom = null;
+                            break;
+                        }
+                    }
+
                 }
             }else{
                 p.sendActionBar(Component.text("等待管理员开始游戏",NamedTextColor.GREEN));

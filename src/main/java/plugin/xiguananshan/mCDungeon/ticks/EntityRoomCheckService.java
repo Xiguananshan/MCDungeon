@@ -29,11 +29,14 @@ public class EntityRoomCheckService extends BukkitRunnable {
         this.spawnCount = spawnCount;
         this.ticks = 0;
         Random random = new Random();
-        this.next_spawn = random.nextInt(16)+5;
+        int max,min;
+        max = (int)Math.ceil(100*1f/(1+ToolClass.round) + 5);
+        min = (int)Math.ceil(40*1f/(1+ToolClass.round) + 5);
+        this.next_spawn = random.nextInt(max-min+1)+min;
         this.world = world;
         this.spawn_types = spawn_types;
         this.uuids = new HashSet<>();
-        setAllDoors(Material.OAK_FENCE);
+        setAllDoors(Material.OAK_FENCE,world);
     }
 
     @Override
@@ -43,7 +46,10 @@ public class EntityRoomCheckService extends BukkitRunnable {
             if(ticks>=next_spawn){
                 ticks = 0;
                 Random random = new Random();
-                next_spawn = random.nextInt(16)+5;
+                int max,min;
+                max = (int)Math.ceil(200*1f/(1+ToolClass.round) + 5);
+                min = (int)Math.ceil(80*1f/(1+ToolClass.round) + 5);
+                next_spawn = random.nextInt(max-min+1)+min;
                 spawnCount--;
                 Class<? extends  Mob> type = spawn_types.get(random.nextInt(spawn_types.size()));
                 Location loc = findSafeLocation(world, room, random);
@@ -52,7 +58,7 @@ public class EntityRoomCheckService extends BukkitRunnable {
                 }
                 if(!type.equals(Zombie.class) && !type.equals(Skeleton.class)){
                     UUID uuid;
-                    uuid = ToolClass.SummonEntity(world,loc,true,random.nextInt(601)+200,type).getUniqueId();
+                    uuid = ToolClass.SummonEntity(world,loc,true,(int)Math.ceil((random.nextInt(601)+200)* 0.5 *Math.sqrt(ToolClass.round+1)),type).getUniqueId();
                     uuids.add(uuid);
                     world.playSound(loc, Sound.BLOCK_ROOTED_DIRT_BREAK,3,1);
                     world.spawnParticle(Particle.BLOCK,loc,20,Bukkit.createBlockData(Material.ROOTED_DIRT));
@@ -94,7 +100,7 @@ public class EntityRoomCheckService extends BukkitRunnable {
                             ,b = chest_map.keySet().stream().toList().get(random.nextInt(6))
                             ,c = legging_map.keySet().stream().toList().get(random.nextInt(6))
                             ,d = boots_map.keySet().stream().toList().get(random.nextInt(6));
-                    int health = helment_map.get(a) + chest_map.get(b) + legging_map.get(c) + boots_map.get(d) + 100;
+                    int health = (int)Math.ceil((helment_map.get(a) + chest_map.get(b) + legging_map.get(c) + boots_map.get(d) + 100) * 0.5 *Math.sqrt(ToolClass.round+1));
                     if(type.equals(Zombie.class)){
                         uuid =ToolClass.SummonEntity(
                                 world,
@@ -141,7 +147,7 @@ public class EntityRoomCheckService extends BukkitRunnable {
                     p.playSound(p,Sound.BLOCK_NOTE_BLOCK_HARP,3,3);
                 }
             }
-            setAllDoors(Material.AIR);
+            setAllDoors(Material.AIR,world);
             for(CornerData.Corner corner : ToolClass.LiveCrossRoom.corners){
                 for(int x = corner.minx;x<=corner.maxx;x++){
                     for(int y = corner.miny;y<=corner.maxy;y++){
@@ -185,7 +191,7 @@ public class EntityRoomCheckService extends BukkitRunnable {
         return world.getBlockAt(x, y - 1, z).getType().isSolid();
     }
 
-    private void setAllDoors(Material material){
+    public static void setAllDoors(Material material,World world){
         for(CornerData.Corner c : ToolClass.LiveCrossRoom.corners){
             for(int x = c.minx; x <= c.maxx; x++){
                 for(int y = c.miny; y <= c.maxy; y++){

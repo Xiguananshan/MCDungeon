@@ -31,7 +31,9 @@ C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeo
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerUseItemEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PotionBreakEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\MCDungeon.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossBarService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossRoomLabelService.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossRoomService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BowIceSkillService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BowService.java
