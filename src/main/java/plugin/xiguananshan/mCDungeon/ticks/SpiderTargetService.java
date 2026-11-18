@@ -36,5 +36,27 @@ public class SpiderTargetService extends BukkitRunnable {
                     spider.setTarget(nearest);
             }
         }
+        entities = Bukkit.selectEntities(Bukkit.getConsoleSender(),"@e[type=minecraft:cave_spider]");
+        for(Entity entity : entities){
+            Spider spider = (Spider) entity;
+            if(spider.getTarget() == null){
+                LivingEntity nearest = null;
+                double length_min = Double.MAX_VALUE;
+                List<Entity> entityList = spider.getNearbyEntities(12,12,12);
+                for(Entity e : entityList){
+                    if(e instanceof LivingEntity l){
+                        if(l instanceof Player || l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("friend"))){
+                            double dis = l.getLocation().distanceSquared(spider.getLocation());
+                            if(dis<length_min){
+                                nearest = l;
+                                length_min = dis;
+                            }
+                        }
+                    }
+                }
+                if(nearest != null)
+                    spider.setTarget(nearest);
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@ package plugin.xiguananshan.mCDungeon.ticks;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
@@ -16,14 +17,17 @@ import javax.swing.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class PlayerGunService extends BukkitRunnable {
-    private final Player p;
-    public PlayerGunService(Player p){
-        this.p = p;
+    private final UUID uuid;
+    public PlayerGunService(UUID uuid){
+        this.uuid = uuid;
     }
     @Override
     public void run() {
+        Player p = Bukkit.getPlayer(uuid);
+        if(p==null) return;
         ItemStack stack = p.getInventory().getItemInMainHand();
         if(!p.isOnline()){
             return;

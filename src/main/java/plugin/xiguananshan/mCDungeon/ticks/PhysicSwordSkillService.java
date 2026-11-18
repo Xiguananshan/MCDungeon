@@ -4,6 +4,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
@@ -18,12 +19,14 @@ import java.util.UUID;
 
 public class PhysicSwordSkillService extends BukkitRunnable {
     private final ItemDisplay display;
+    private final Player source;
     private int ticks;
     private Location impact;
     private double a;
     private final HashSet<UUID> attacks;
-    public PhysicSwordSkillService(ItemDisplay display){
+    public PhysicSwordSkillService(ItemDisplay display,Player source){
         this.display = display;
+        this.source = source;
         this.ticks = 45;
         this.a = 0;
         this.attacks = new HashSet<>();
@@ -74,8 +77,7 @@ public class PhysicSwordSkillService extends BukkitRunnable {
                         if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
                             if(l.getLocation().clone().subtract(impact).lengthSquared() - a*a <= 0.2){
                                 if(!attacks.contains(l.getUniqueId())){
-                                    ToolClass.typeMap.put(l.getUniqueId(),DamageType.PHYSIC);
-                                    l.damage(1500);
+                                    ToolClass.Damage(l, source, 1500, DamageType.PHYSIC);
                                     attacks.add(l.getUniqueId());
                                 }
                             }

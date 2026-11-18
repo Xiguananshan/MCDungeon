@@ -43,6 +43,7 @@ public class EntityDamageEventListener implements Listener {
 
         if(e.getEntity() instanceof LivingEntity l){
             PersistentDataContainer pdc = l.getPersistentDataContainer();
+            Player source = e.getDamageSource().getCausingEntity() instanceof Player p ? p : null;
             if(e.getEntity() instanceof Player p){
                 Integer defence = ToolClass.defence.get(p.getUniqueId());
                 e.setDamage(e.getDamage()*(1d-2/Math.PI*Math.atan(1/200f*defence)));
@@ -500,13 +501,13 @@ public class EntityDamageEventListener implements Listener {
                             e.setDamage(e.getDamage()*2);
                         }
                     }
-                    Bukkit.getPluginManager().callEvent(new GunShotEvent((int)Math.ceil(e.getDamage()), t,l,true));
+                    Bukkit.getPluginManager().callEvent(new GunShotEvent((int)Math.ceil(e.getDamage()), t,l,true,source));
 
                 }else{
                     if(ToolClass.physic_attack.containsKey(l.getUniqueId())){
                         e.setDamage(e.getDamage()*2);
                     }
-                    Bukkit.getPluginManager().callEvent(new GunShotEvent((int)Math.ceil(e.getDamage()), DamageType.PHYSIC,l,true));
+                    Bukkit.getPluginManager().callEvent(new GunShotEvent((int)Math.ceil(e.getDamage()), DamageType.PHYSIC,l,true,source));
                 }
                 Integer health = pdc.get(ToolClass.fromNamespaceKey("health"), PersistentDataType.INTEGER);
                 if(health != null){
@@ -586,6 +587,7 @@ public class EntityDamageEventListener implements Listener {
     @EventHandler
     public void onFireballDamage(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Fireball fireball)) return;
+        Player source = fireball.getShooter() instanceof Player p ? p : null;
         if(!event.getEntity().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
             return;
         }
@@ -595,8 +597,7 @@ public class EntityDamageEventListener implements Listener {
         }
         if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) {
             if(event.getEntity() instanceof LivingEntity l){
-                ToolClass.typeMap.put(l.getUniqueId(),DamageType.FIRE);
-                l.damage(70);
+                ToolClass.Damage(l, source, 70, DamageType.FIRE);
             }
         }
         event.setDamage(0);
@@ -628,11 +629,11 @@ public class EntityDamageEventListener implements Listener {
     @EventHandler
     public void Hit(ProjectileHitEvent e){
         if(e.getEntity() instanceof AbstractArrow arrow){
+            Player source = arrow.getShooter() instanceof Player p ? p : null;
             if(arrow.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("ice_bow_arrow"))){
                 if(e.getHitEntity() instanceof LivingEntity l){
                     if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
-                        ToolClass.typeMap.put(l.getUniqueId(),DamageType.ICE);
-                        l.damage(300);
+                        ToolClass.Damage(l, source, 300, DamageType.ICE);
                         e.getHitEntity().setVelocity(arrow.getVelocity().multiply(0.3f).setY(0.3f));
                     }
                 }
@@ -640,8 +641,7 @@ public class EntityDamageEventListener implements Listener {
             if(arrow.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("ice_skill_arrow"))){
                 if(e.getHitEntity() instanceof LivingEntity l){
                     if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
-                        ToolClass.typeMap.put(l.getUniqueId(),DamageType.ICE);
-                        l.damage(150);
+                        ToolClass.Damage(l, source, 150, DamageType.ICE);
                     }
                 }
             }

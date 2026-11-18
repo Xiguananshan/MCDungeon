@@ -2,6 +2,7 @@ package plugin.xiguananshan.mCDungeon.ticks;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -13,12 +14,13 @@ import plugin.xiguananshan.mCDungeon.ToolClass;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class PlayerSkillService extends BukkitRunnable {
-    private final Player p;
+    private final UUID uuid;
     private final Map<Integer,Integer> cold;
-    public PlayerSkillService(Player p){
-        this.p = p;
+    public PlayerSkillService(UUID uuid){
+        this.uuid = uuid;
         cold = new HashMap<>();
     }
 
@@ -32,6 +34,8 @@ public class PlayerSkillService extends BukkitRunnable {
 
     @Override
     public void run() {
+        Player p = Bukkit.getPlayer(uuid);
+        if(p == null) return;
         for(Integer i : cold.keySet()){
             Integer l = cold.get(i);
             l--;

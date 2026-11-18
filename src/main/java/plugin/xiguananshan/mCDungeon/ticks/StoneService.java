@@ -4,6 +4,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -15,11 +16,13 @@ import java.util.List;
 public class StoneService extends BukkitRunnable {
     private final Item item;
     private final Vector vec;
+    private final Player source;
     private int ticks;
     private Location lastLocation;
-    public StoneService(Item item,Vector vec){
+    public StoneService(Item item,Vector vec,Player source){
         this.item = item;
         this.vec = vec;
+        this.source = source;
         ticks = 40;
         lastLocation = item.getLocation().clone();
     }
@@ -75,9 +78,8 @@ public class StoneService extends BukkitRunnable {
         for(Entity entity : entities){
             if(entity.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
                 if(entity instanceof LivingEntity l){
-                    ToolClass.typeMap.put(l.getUniqueId(), DamageType.ROCK);
+                    ToolClass.Damage(l, source, 80, DamageType.ROCK);
                     attacked = true;
-                    l.damage(80);
                     l.setVelocity(vec.normalize().multiply(0.5f).setY(0.3f));
                 }
             }

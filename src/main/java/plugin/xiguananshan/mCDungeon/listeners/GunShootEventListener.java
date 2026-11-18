@@ -18,6 +18,6 @@ public class GunShootEventListener implements Listener {
             ToolClass.SpawnDamageEntity(e.GetHealth(),l.getWorld(),l.getLocation().add(0,l.getHeight(),0), e.getDamageType() == DamageType.ICE ? NamedTextColor.AQUA :NamedTextColor.nearestTo(TextColor.color(ToolClass.typeColorMap.get(e.getDamageType()).asRGB())));
             return;
         }
-        l.damage(e.GetHealth());
+        ToolClass.Damage(l, e.getSource(), e.GetHealth(), e.getDamageType());
     }
 }

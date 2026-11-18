@@ -79,7 +79,7 @@ public class PlayerUseItemEventListener implements Listener {
                                 armorStand.setInvulnerable(true);
                                 armorStand.getEquipment().setHelmet(new ItemStack(Material.BLACK_CONCRETE));
                                 armorStand.setGravity(false);
-                                new WindHoleService(armorStand).runTaskTimer(ToolClass.PLUGIN,0,1);
+                                new WindHoleService(armorStand,e.getPlayer()).runTaskTimer(ToolClass.PLUGIN,0,1);
                                 e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_GENERIC_EXPLODE,3,1);
                             }
                             if(pdc.has(ToolClass.fromNamespaceKey("stone_book"))){
@@ -92,7 +92,7 @@ public class PlayerUseItemEventListener implements Listener {
                                             fb.setHurtEntities(false);
                                         }
                                 );
-                                StoneSkillService stoneSkillService = new StoneSkillService(block);
+                                StoneSkillService stoneSkillService = new StoneSkillService(block,e.getPlayer());
                                 stoneSkillService.runTaskTimer(ToolClass.PLUGIN,0,1);
                                 e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.BLOCK_ANVIL_PLACE,3,1);
                             }
@@ -107,8 +107,7 @@ public class PlayerUseItemEventListener implements Listener {
                                 for(Entity entity : entities){
                                     if(entity instanceof LivingEntity l){
                                         if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
-                                            ToolClass.typeMap.put(l.getUniqueId(),DamageType.GRASS);
-                                            l.damage(400);
+                                            ToolClass.Damage(l, e.getPlayer(), 400, DamageType.GRASS);
                                             if(ToolClass.entity_defence.containsKey(l.getUniqueId())){
                                                 if(ToolClass.entity_defence.get(l.getUniqueId()).containsKey(DamageType.GRASS)){
                                                     Integer gk = ToolClass.entity_defence.get(l.getUniqueId()).get(DamageType.GRASS);
@@ -153,7 +152,7 @@ public class PlayerUseItemEventListener implements Listener {
                                 transformation.getScale().set(new Vector3f(0.8f,0.8f,0.8f));
                                 display.setTransformation(transformation);
                                 e.getPlayer().getWorld().playSound(e.getPlayer().getLocation(),Sound.ENTITY_ILLUSIONER_CAST_SPELL,3,1);
-                                new PhysicSwordSkillService(display).runTaskTimer(ToolClass.PLUGIN,0,1);
+                                new PhysicSwordSkillService(display,e.getPlayer()).runTaskTimer(ToolClass.PLUGIN,0,1);
                             }
 
                             service.addCold(id,skill);
@@ -271,14 +270,14 @@ public class PlayerUseItemEventListener implements Listener {
             if(pdc.has(ToolClass.fromNamespaceKey("stone_book"))){
                 if(!ToolClass.book_tick.containsKey(e.getPlayer().getUniqueId())){
                     Item item = e.getPlayer().getWorld().dropItem(e.getPlayer().getEyeLocation(),new ItemStack(Material.STONE));
-                    new StoneService(item,e.getPlayer().getEyeLocation().getDirection().normalize().multiply(4)).runTaskTimer(ToolClass.PLUGIN,0,1);
+                    new StoneService(item,e.getPlayer().getEyeLocation().getDirection().normalize().multiply(4),e.getPlayer()).runTaskTimer(ToolClass.PLUGIN,0,1);
                     e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_ITEM_PICKUP,1,1);
                     ToolClass.book_tick.put(e.getPlayer().getUniqueId(),System.currentTimeMillis());
                 }else{
                     Long now = System.currentTimeMillis();
                     if(now - ToolClass.book_tick.get(e.getPlayer().getUniqueId()) >= 400){
                         Item item = e.getPlayer().getWorld().dropItem(e.getPlayer().getEyeLocation(),new ItemStack(Material.STONE));
-                        new StoneService(item,e.getPlayer().getEyeLocation().getDirection().normalize().multiply(3)).runTaskTimer(ToolClass.PLUGIN,0,1);
+                        new StoneService(item,e.getPlayer().getEyeLocation().getDirection().normalize().multiply(3),e.getPlayer()).runTaskTimer(ToolClass.PLUGIN,0,1);
                         e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.ENTITY_ITEM_PICKUP,1,1);
                         ToolClass.book_tick.put(e.getPlayer().getUniqueId(),System.currentTimeMillis());
                     }
@@ -362,7 +361,7 @@ public class PlayerUseItemEventListener implements Listener {
                             if(ToolClass.Shoot_timer.containsKey(e.getPlayer().getUniqueId())){
                                 if(now_time - ToolClass.Shoot_timer.get(e.getPlayer().getUniqueId()) >= 300){
 
-                                    ToolClass.Shoot(e.getPlayer().getEyeLocation(),e.getPlayer().getWorld(),10f,80, t);
+                                    ToolClass.Shoot(e.getPlayer().getEyeLocation(),e.getPlayer().getWorld(),10f,80, t,e.getPlayer());
                                     ToolClass.Shoot_timer.put(e.getPlayer().getUniqueId(),now_time);
 
                                     e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST,1,1);
@@ -380,7 +379,7 @@ public class PlayerUseItemEventListener implements Listener {
                                 }
                             }else{
                                 ToolClass.Shoot_timer.put(e.getPlayer().getUniqueId(),now_time);
-                                ToolClass.Shoot(e.getPlayer().getEyeLocation(),e.getPlayer().getWorld(),10f,80, t);
+                                ToolClass.Shoot(e.getPlayer().getEyeLocation(),e.getPlayer().getWorld(),10f,80, t,e.getPlayer());
                                 e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST,1,1);
                                 k--;
                                 pdc.set(ToolClass.fromNamespaceKey("count"),PersistentDataType.INTEGER,k);

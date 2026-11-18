@@ -7,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
@@ -18,10 +19,12 @@ import java.util.Collection;
 
 public class WindHoleService extends BukkitRunnable {
     private final ArmorStand display;
+    private final Player source;
     private int ticks;
     private float yaw;
-    public WindHoleService(ArmorStand entity){
+    public WindHoleService(ArmorStand entity,Player source){
         display = entity;
+        this.source = source;
         ticks = 200;
         yaw = 0;
     }
@@ -54,8 +57,7 @@ public class WindHoleService extends BukkitRunnable {
                 }
                 if(entity.getLocation().distanceSquared(core) <= 4 && ticks%10==0){
                     if(entity instanceof LivingEntity l){
-                        ToolClass.typeMap.put(entity.getUniqueId(),DamageType.AIR);
-                        l.damage(40);
+                        ToolClass.Damage(l, source, 40, DamageType.AIR);
                     }
                 }
             }

@@ -3,6 +3,7 @@ package plugin.xiguananshan.mCDungeon.ticks;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
@@ -15,11 +16,13 @@ import java.util.UUID;
 public class RockExportService extends BukkitRunnable {
     private final Location core;
     private final World world;
+    private final Player source;
     private double a;
     private final HashSet<UUID> hurted;
-    public RockExportService(World world,Location core){
+    public RockExportService(World world,Location core,Player source){
         this.world = world;
         this.core = core;
+        this.source = source;
         a = 0;
         hurted = new HashSet<>();
         world.playSound(core, Sound.BLOCK_ENCHANTMENT_TABLE_USE,1,1);
@@ -36,8 +39,7 @@ public class RockExportService extends BukkitRunnable {
             if(entity instanceof LivingEntity l){
                 if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
                     if(l.getLocation().distanceSquared(core) - a <= 0.1 && !hurted.contains(l.getUniqueId())){
-                        ToolClass.typeMap.put(l.getUniqueId(), DamageType.ROCK);
-                        l.damage(100);
+                        ToolClass.Damage(l, source, 100, DamageType.ROCK);
                         hurted.add(l.getUniqueId());
                     }
                 }

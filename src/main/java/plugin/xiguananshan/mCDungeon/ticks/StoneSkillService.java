@@ -4,6 +4,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
@@ -13,14 +14,16 @@ import java.util.List;
 public class StoneSkillService extends BukkitRunnable {
 
     private final FallingBlock block;
+    private final Player source;
     private int ticks;
     private Location core;
     private Location block_pos;
     private final World world;
     private List<Entity> entities;
 
-    public StoneSkillService(FallingBlock block){
+    public StoneSkillService(FallingBlock block,Player source){
         this.block = block;
+        this.source = source;
         this.ticks = 160;
         core = block.getLocation();
         world = block.getWorld();
@@ -34,15 +37,14 @@ public class StoneSkillService extends BukkitRunnable {
                 for(Entity entity : entities){
                     if(entity instanceof LivingEntity l){
                         if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
-                            ToolClass.typeMap.put(l.getUniqueId(), DamageType.ROCK);
-                            l.damage(700);
+                            ToolClass.Damage(l, source, 700, DamageType.ROCK);
                         }
                     }
                 }
                 world.spawnParticle(Particle.EXPLOSION,core,15);
                 world.playSound(core, Sound.ENTITY_GENERIC_EXPLODE,3,1);
             }else if(ticks<=120&&ticks%30==0){
-                new RockExportService(world,core).runTaskTimer(ToolClass.PLUGIN,0,1);
+                new RockExportService(world,core,source).runTaskTimer(ToolClass.PLUGIN,0,1);
             }
 
             ticks--;

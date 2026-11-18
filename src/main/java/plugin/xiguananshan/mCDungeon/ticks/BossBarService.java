@@ -37,9 +37,10 @@ public class BossBarService extends BukkitRunnable {
                 if(p != null){
                     p.hideBossBar(bossBar);
                 }
-                cancel();
-                return;
+
             }
+            cancel();
+            return;
         }
         Integer k = boss.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER);
         if(k!= null)

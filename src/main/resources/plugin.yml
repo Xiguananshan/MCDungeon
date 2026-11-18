@@ -14,3 +14,8 @@ commands:
     description: A test command.
   settings:
     description: Open the settings panel of game.
+  start:
+    description: Start the game.
+
+
+

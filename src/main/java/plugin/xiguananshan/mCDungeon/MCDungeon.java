@@ -31,6 +31,7 @@ public final class MCDungeon extends JavaPlugin {
         getCommand("generate").setExecutor(new GenerateTestCommand());
         getCommand("chest").setExecutor(new TestChestCommand());
         getCommand("settings").setExecutor(new SettingsCommand());
+        getCommand("start").setExecutor(new StartCommand());
         new ElementTypeTimer().runTaskTimer(this,0,1);
         new FreezeTicksTimer().runTaskTimer(this,0,1);
         new GrassTickTimer().runTaskTimer(this,0,1);
@@ -44,6 +45,9 @@ public final class MCDungeon extends JavaPlugin {
         new FriendService().runTaskTimer(this,0,1);
         new PlayerGameService().runTaskTimer(this,0,1);
         new SpiderTargetService().runTaskTimer(this,0,10);
+        new ScoreBoardInfoService().runTaskTimer(this,0,1);
+        new PDCModifierService().runTaskTimer(this,0,1);
+        new CompassService().runTaskTimer(this,0,1);
         saveDefaultConfig();
         // Plugin startup logic
     }

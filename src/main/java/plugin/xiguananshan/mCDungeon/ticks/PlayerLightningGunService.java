@@ -1,5 +1,6 @@
 package plugin.xiguananshan.mCDungeon.ticks;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -12,17 +13,23 @@ import org.bukkit.util.Vector;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 
+import java.util.UUID;
+
 public class PlayerLightningGunService extends BukkitRunnable {
-    private final Player p;
+    private final UUID uuid;
     private final World world;
     public double process;
-    public PlayerLightningGunService(Player p){
-        this.p = p;
+    public PlayerLightningGunService(UUID uuid){
+        this.uuid = uuid;
+        Player p = Bukkit.getPlayer(uuid);
+        assert p != null;
         this.world = p.getWorld();
         this.process = 0;
     }
     @Override
     public void run() {
+        Player p = Bukkit.getPlayer(uuid);
+        if(p==null)  return;
         ItemStack stack = p.getInventory().getItemInMainHand();
         ItemMeta meta = stack.getItemMeta();
         if(meta!=null){

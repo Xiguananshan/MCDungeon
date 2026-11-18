@@ -46,8 +46,7 @@ public class LightningSkillService extends BukkitRunnable {
             if(!uuids.contains(entity.getUniqueId())){
                 if(entity instanceof LivingEntity l){
                     if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
-                        ToolClass.typeMap.put(l.getUniqueId(),DamageType.LIGHTNING);
-                        l.damage(1200);
+                        ToolClass.Damage(l, p, 1200, DamageType.LIGHTNING);
                     }
                 }
             }

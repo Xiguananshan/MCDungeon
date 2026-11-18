@@ -1,6 +1,7 @@
 package plugin.xiguananshan.mCDungeon.events;
 
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jspecify.annotations.NonNull;
@@ -12,11 +13,13 @@ public class GunShotEvent extends Event {
     private final DamageType types;
     private final LivingEntity entity;
     private final boolean executed;
-    public GunShotEvent(int health,DamageType types,LivingEntity entity,boolean executed){
+    private final Player source;
+    public GunShotEvent(int health,DamageType types,LivingEntity entity,boolean executed,Player source){
         this.health = health;
         this.types = types;
         this.entity = entity;
         this.executed = executed;
+        this.source = source;
     }
     public DamageType getDamageType(){
         return types;
@@ -29,6 +32,9 @@ public class GunShotEvent extends Event {
     }
     public boolean getExecuted(){
         return executed;
+    }
+    public Player getSource(){
+        return source;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package plugin.xiguananshan.mCDungeon.listeners;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PotionSplashEvent;
@@ -10,7 +11,8 @@ public class PotionBreakEventListener implements Listener {
     @EventHandler
     public void run(PotionSplashEvent e){
         if(e.getPotion().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("water_book"))){
-            new WaterBookAttackService(e.getPotion().getLocation()).runTaskTimer(ToolClass.PLUGIN,0,1);
+            Player source = e.getPotion().getShooter() instanceof Player p ? p : null;
+            new WaterBookAttackService(e.getPotion().getLocation(),source).runTaskTimer(ToolClass.PLUGIN,0,1);
         }
     }
 }

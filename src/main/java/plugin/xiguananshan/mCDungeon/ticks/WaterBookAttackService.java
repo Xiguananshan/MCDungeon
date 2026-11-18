@@ -5,6 +5,7 @@ import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.SplashPotion;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -16,9 +17,11 @@ import java.util.List;
 
 public class WaterBookAttackService extends BukkitRunnable {
     private final Location core;
+    private final Player source;
     private int ticks;
-    public WaterBookAttackService(Location core){
+    public WaterBookAttackService(Location core,Player source){
         this.core = core;
+        this.source = source;
         this.ticks = 60;
     }
     @Override
@@ -38,8 +41,7 @@ public class WaterBookAttackService extends BukkitRunnable {
                 if(entity.getLocation().distanceSquared(core) <= 9){
                     if(entity instanceof LivingEntity l){
                         if(entity.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
-                            ToolClass.typeMap.put(l.getUniqueId(),DamageType.WATER);
-                            l.damage(65);
+                            ToolClass.Damage(l, source, 65, DamageType.WATER);
                         }
                     }
                 }

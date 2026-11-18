@@ -34,8 +34,7 @@ public class WaterBookSkillService extends BukkitRunnable {
                 if(entity.getLocation().distanceSquared(player.getLocation()) <= 9){
                     if(entity instanceof LivingEntity l){
                         if(l.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
-                            ToolClass.typeMap.put(l.getUniqueId(),DamageType.WATER);
-                            l.damage(120);
+                            ToolClass.Damage(l, player, 120, DamageType.WATER);
                             Random random = new Random();
                             if(random.nextInt(100)+1<=40){
                                 player.heal(1.0);

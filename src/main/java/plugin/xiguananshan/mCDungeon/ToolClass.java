@@ -18,16 +18,10 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.Title.Times;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.FluidCollisionMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -52,6 +46,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
@@ -59,12 +54,7 @@ import org.bukkit.util.Vector;
 import org.joml.Vector3f;
 import plugin.xiguananshan.mCDungeon.activity.LiveShop;
 import plugin.xiguananshan.mCDungeon.boss.ZombieKingService;
-import plugin.xiguananshan.mCDungeon.data.ActivityRequest;
-import plugin.xiguananshan.mCDungeon.data.CornerData;
-import plugin.xiguananshan.mCDungeon.data.CostData;
-import plugin.xiguananshan.mCDungeon.data.CrossData;
-import plugin.xiguananshan.mCDungeon.data.EasyLocation;
-import plugin.xiguananshan.mCDungeon.data.StorageManager;
+import plugin.xiguananshan.mCDungeon.data.*;
 import plugin.xiguananshan.mCDungeon.enums.CrossStructureType;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 import plugin.xiguananshan.mCDungeon.events.GunShotEvent;
@@ -91,6 +81,7 @@ public class ToolClass {
    public static ItemStack PhysicSword;
    public static ItemStack GodSpawner;
    public static ItemStack ElementStone;
+   public static ItemStack Compass;
    public static ItemStack Iron;
    public static ItemStack Gold;
    public static Map<ItemStack, Float> itemPool;
@@ -134,6 +125,9 @@ public class ToolClass {
    public static Map<ItemStack, CostData> ShopData;
    public static Integer round = 1;
    public static CornerData.Corner BossRoom;
+   public static Map<UUID,Scoreboard> scoreboardMap;
+   public static Map<UUID, PDCModify> modifyMap;
+   public static HashSet<UUID> modified;
 
    public static boolean isIceBow(ItemStack stack) {
       if (stack != null && stack.getType() == Material.BOW) {
@@ -182,8 +176,8 @@ public class ToolClass {
       ItemMeta meta = s.getItemMeta();
 
       assert meta != null;
-
-      meta.getPersistentDataContainer().set(fromNamespaceKey("id"), PersistentDataType.INTEGER, max_item_id);
+      if(stack.getType()  != Material.GOLD_INGOT && stack.getType() != Material.IRON_INGOT)
+         meta.getPersistentDataContainer().set(fromNamespaceKey("id"), PersistentDataType.INTEGER, max_item_id);
       if (meta.getPersistentDataContainer().has(fromNamespaceKey("random_element"))) {
          Random random = new Random();
 
@@ -278,7 +272,7 @@ public class ToolClass {
       runnable.runTaskTimer(PLUGIN, 0L, 1L);
    }
 
-   public static void Shoot(Location location, World world, float max_distance, int damage, DamageType type) {
+   public static void Shoot(Location location, World world, float max_distance, int damage, DamageType type, Player source) {
       Vector direction = location.getDirection();
       RayTraceResult block = world.rayTraceBlocks(location, direction, max_distance, FluidCollisionMode.NEVER, true);
       RayTraceResult entity = world.rayTraceEntities(location, direction, max_distance, 0.0F, (entity1x) -> {
@@ -298,8 +292,7 @@ public class ToolClass {
                 Vector n_direction = direction.normalize();
                n_direction.setY(0);
                l.setVelocity(n_direction.multiply(0.5F).setY(0.3F));
-               typeMap.put(l.getUniqueId(), type);
-               Bukkit.getPluginManager().callEvent(new GunShotEvent(damage, type, l, false));
+               Bukkit.getPluginManager().callEvent(new GunShotEvent(damage, type, l, false, source));
             } else if (entity1.getPersistentDataContainer().has(fromNamespaceKey("grass"))) {
                if (type == DamageType.LIGHTNING) {
                   Collection<Entity> entities = entity1.getNearbyEntities(8.0F, 8.0F, 8.0F);
@@ -978,7 +971,7 @@ public class ToolClass {
             e.printStackTrace();
          }
 
-         Title title1 = Title.title(Component.text("地图生成完成", NamedTextColor.GREEN), Component.text().build(), Times.times(Duration.ofMillis(500L), Duration.ofMillis(2000L), Duration.ofMillis(500L)));
+         Title title1 = Title.title(Component.text("地图生成完成", NamedTextColor.GREEN), Component.text("第",NamedTextColor.YELLOW).append(Component.text(round,NamedTextColor.YELLOW).append(Component.text("层",NamedTextColor.YELLOW))), Times.times(Duration.ofMillis(500L), Duration.ofMillis(2000L), Duration.ofMillis(500L)));
 
          for(Player player : players) {
             game_players.add(player.getUniqueId());
@@ -1016,8 +1009,7 @@ public class ToolClass {
          for(Entity entity : GetCyEntity(core, world, dir, 6.0F, 1.2)) {
             if (entity instanceof LivingEntity l) {
                 if (l.getPersistentDataContainer().has(fromNamespaceKey("entity"))) {
-                  typeMap.put(l.getUniqueId(), DamageType.LIGHTNING);
-                  l.damage(damage);
+                  Damage(l, p, damage, DamageType.LIGHTNING);
                   l.setVelocity(dir.clone().multiply(0.6).setY(0.3));
                }
             }
@@ -1254,6 +1246,7 @@ public class ToolClass {
       ElementStone = new ItemStack(Material.AMETHYST_SHARD);
       Iron = new ItemStack(Material.IRON_INGOT);
       Gold = new ItemStack(Material.GOLD_INGOT);
+      Compass = new ItemStack(Material.COMPASS);
       itemPool = new HashMap<>();
       Shoot_timer = new HashMap<>();
       typeMap = new HashMap<>();
@@ -1289,6 +1282,9 @@ public class ToolClass {
       sword_tick = new HashMap<>();
       LiveCrossRoom = new CornerData();
       requestMap = new HashMap<>();
+      scoreboardMap = new HashMap<>();
+      modifyMap = new HashMap<>();
+      modified = new HashSet<>();
       typeColorMap = new HashMap<>() {
          {
             this.put(DamageType.PHYSIC, Color.fromARGB(255, 255, 255, 255));
@@ -1514,7 +1510,16 @@ public class ToolClass {
       name = Component.text("遗愿终成之刀", NamedTextColor.GOLD);
       meta.displayName(name);
       meta.lore(List.of(Component.text("得到元素祝福的愿望终会达成，一定会的。攻击造成280点物理伤害", NamedTextColor.YELLOW), Component.text("元素：", NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.PHYSIC), NamedTextColor.nearestTo(TextColor.color((typeColorMap.get(DamageType.PHYSIC)).asRGB())))), Component.text("按住Shift+右键可以释放这把剑的技能", NamedTextColor.YELLOW), Component.text("技能：在上方生成一把铁剑，1秒后落下，落地产生冲击波，造成1500点物理伤害", NamedTextColor.YELLOW), Component.text("该武器无法被元素晶石强化", NamedTextColor.RED)));
-      PhysicSword.setItemMeta(meta);
+      meta = Compass.getItemMeta();
+      assert meta != null;
+      pdc = meta.getPersistentDataContainer();
+      pdc.set(fromNamespaceKey("compass"),PersistentDataType.BOOLEAN,true);
+      name = Component.text("地牢指南针",NamedTextColor.WHITE);
+      meta.displayName(name);
+      meta.lore(List.of(Component.text("指向最近的刷怪房或Boss房，相信我，没有这个你会迷路的",NamedTextColor.YELLOW)));
+
+      Compass.setItemMeta(meta);
+
       itemPool.put(DefaultGun, 0.9F);
       itemPool.put(ElementStone, 0.65F);
       itemPool.put(WindSword, 0.015F);
@@ -1556,6 +1561,7 @@ public class ToolClass {
       {
          player.teleport(new Location(player.getWorld(),14,101,14));
          player.getInventory().addItem(fromItem(DefaultGun));
+         player.getInventory().addItem(fromItem(Compass));
       }
    }
    public static void NextRound(){
@@ -1576,7 +1582,41 @@ public class ToolClass {
          player.teleport(new Location(player.getWorld(),14,101,14));
       }
    }
-   public static void Damage(Entity goal,Player source,int damage,DamageType t){
+   public static void Damage(LivingEntity goal,Player source,int damage,DamageType t){
+      PersistentDataContainer pdc = source.getPersistentDataContainer();
+      Float lv = pdc.get(fromNamespaceKey("lv"),PersistentDataType.FLOAT);
+      Float la = pdc.get(fromNamespaceKey("la"),PersistentDataType.FLOAT);
+      if(lv != null && la != null){
+         double r = Math.random();
+         if(r<lv/100f){
+            damage = (int)Math.ceil(damage * (1f+la/100f));
+            ToolClass.typeMap.put(goal.getUniqueId(),t);
+            goal.damage(damage);
+            SpawnTextEntity(Component.text("暴击",NamedTextColor.DARK_RED), goal.getWorld(), goal.getLocation().clone().add(0,2.5,0));
+         }else{
+            ToolClass.typeMap.put(goal.getUniqueId(),t);
+            goal.damage(damage);
+         }
+      }
+   }
+   public static void reset(Player player){
+      for (Attribute attribute : Registry.ATTRIBUTE) {
+         AttributeInstance instance = player.getAttribute(attribute);
+         if (instance == null) continue;
 
+         for (AttributeModifier modifier : instance.getModifiers()) {
+            instance.removeModifier(modifier);
+         }
+
+         instance.setBaseValue(attribute.getDefaultValue());
+      }
+
+      AttributeInstance speed = player.getAttribute(Attribute.MOVEMENT_SPEED);
+      if (speed != null) {
+         speed.setBaseValue(0.1);
+      }
+      defence.put(player.getUniqueId(),0);
+      player.getPersistentDataContainer().set(fromNamespaceKey("lv"),PersistentDataType.FLOAT,5f);
+      player.getPersistentDataContainer().set(fromNamespaceKey("la"),PersistentDataType.FLOAT,50f);
    }
 }
