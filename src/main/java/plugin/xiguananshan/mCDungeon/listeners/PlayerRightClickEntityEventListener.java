@@ -29,6 +29,10 @@ public class PlayerRightClickEntityEventListener implements Listener {
 
         Entity entity = e.getRightClicked();
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
+        if(pdc.has(ToolClass.fromNamespaceKey("player"))){
+            e.setCancelled(true);
+            return;
+        }
         if(pdc.has(ToolClass.fromNamespaceKey("uuid"),PersistentDataType.STRING)){
             String uuid = pdc.get(ToolClass.fromNamespaceKey("uuid"),PersistentDataType.STRING);
             assert  uuid != null;

@@ -2,7 +2,10 @@ package plugin.xiguananshan.mCDungeon.listeners;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,6 +19,8 @@ import plugin.xiguananshan.mCDungeon.ticks.PlayerGunService;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerLightningGunService;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerRockDefenceTickTimer;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerSkillService;
+
+import java.time.Duration;
 
 public class PlayerJoinListener implements Listener {
     @EventHandler
@@ -61,7 +66,23 @@ public class PlayerJoinListener implements Listener {
         }
         if(!ToolClass.game_players.contains(e.getPlayer().getUniqueId())){
             e.getPlayer().teleport(new Location(e.getPlayer().getWorld(),0,-60,0));
+            e.getPlayer().setGameMode(GameMode.ADVENTURE);
+            e.getPlayer().getInventory().clear();
+            Title title = Title.title(Component.text("MCDungeon Beta", NamedTextColor.GREEN, TextDecoration.BOLD),
+                    Component.text("玩得开心",NamedTextColor.YELLOW),
+                    Title.Times.times(
+                            Duration.ofMillis(500),
+                            Duration.ofMillis(2000),
+                            Duration.ofMillis(500)
+                    ));
+            e.getPlayer().showTitle(title);
         }
         e.getPlayer().sendMessage(Component.text("输入/settings可以更改游戏设置", NamedTextColor.YELLOW));
+        if(ToolClass.un_relief_players.containsKey(e.getPlayer().getUniqueId())){
+            e.getPlayer().teleport(ToolClass.un_relief_players.get(e.getPlayer().getUniqueId()));
+            ToolClass.un_relief_players.remove(e.getPlayer().getUniqueId());
+            e.getPlayer().setGameMode(GameMode.ADVENTURE);
+            e.getPlayer().clearActivePotionEffects();
+        }
     }
 }

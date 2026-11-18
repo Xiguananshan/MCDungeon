@@ -41,6 +41,10 @@ public class EntityRoomCheckService extends BukkitRunnable {
 
     @Override
     public void run() {
+        if(!ToolClass.gaming){
+            cancel();
+            return;
+        }
         if(spawnCount > 0){
             ticks++;
             if(ticks>=next_spawn){

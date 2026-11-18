@@ -11,6 +11,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import plugin.xiguananshan.mCDungeon.ToolClass;
 
+import java.util.ArrayList;
+
 public class StartCommand implements CommandExecutor {
 
     @Override
@@ -20,10 +22,12 @@ public class StartCommand implements CommandExecutor {
                 p.sendMessage(Component.text("你不是管理员", NamedTextColor.RED));
                 return false;
             }
+            ToolClass.game_players = new ArrayList<>();
             for(Player player : Bukkit.getOnlinePlayers()){
                 ToolClass.reset(player);
                 player.teleport(new Location(player.getWorld(),0.7f,1f,-2f));
                 ToolClass.game_players.add(player.getUniqueId());
+
                 player.getInventory().clear();
             }
 

@@ -5,6 +5,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import plugin.xiguananshan.mCDungeon.ToolClass;
@@ -37,7 +38,7 @@ public class WaterBookSkillService extends BukkitRunnable {
                             ToolClass.Damage(l, player, 120, DamageType.WATER);
                             Random random = new Random();
                             if(random.nextInt(100)+1<=40){
-                                player.heal(1.0);
+                                player.heal(1.0, EntityRegainHealthEvent.RegainReason.MAGIC);
                             }
                             Vector dir = l.getLocation().clone().subtract(player.getLocation()).toVector().normalize();
                             l.setVelocity(dir.multiply(0.5f).setY(0.3f));

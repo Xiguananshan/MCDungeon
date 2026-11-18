@@ -26,6 +26,8 @@ public final class MCDungeon extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerOpenChestEventListener(),this);
         getServer().getPluginManager().registerEvents(new EntityDeadEventListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerRightClickEntityEventListener(),this);
+        getServer().getPluginManager().registerEvents(new PlayerDiedEventListener(),this);
+        getServer().getPluginManager().registerEvents(new PlayerHealEventListener(),this);
         getCommand("test").setExecutor(new TestCommand());
         getCommand("test_gun").setExecutor(new TestGunCommand());
         getCommand("generate").setExecutor(new GenerateTestCommand());

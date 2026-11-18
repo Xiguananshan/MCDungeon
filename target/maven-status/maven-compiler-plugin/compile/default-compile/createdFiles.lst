@@ -42,6 +42,7 @@ plugin\xiguananshan\mCDungeon\boss\SkillType.class
 plugin\xiguananshan\mCDungeon\ticks\StoneSkillService.class
 plugin\xiguananshan\mCDungeon\ticks\BowService.class
 plugin\xiguananshan\mCDungeon\ticks\PlayerSkillService.class
+plugin\xiguananshan\mCDungeon\ticks\PlayerDiedService.class
 plugin\xiguananshan\mCDungeon\listeners\EntityDropExpEventListener.class
 plugin\xiguananshan\mCDungeon\listeners\PlayerPickItemEventListener.class
 plugin\xiguananshan\mCDungeon\ticks\EntityRoomCheckService$4.class
@@ -72,6 +73,7 @@ plugin\xiguananshan\mCDungeon\ticks\WaterBookSkillService.class
 plugin\xiguananshan\mCDungeon\ticks\ElementTypeTimer.class
 plugin\xiguananshan\mCDungeon\data\PDCModify$Modifier.class
 plugin\xiguananshan\mCDungeon\listeners\FriendWardenListener.class
+plugin\xiguananshan\mCDungeon\listeners\PlayerHealEventListener.class
 plugin\xiguananshan\mCDungeon\ticks\PlayerRockDefenceTickTimer.class
 plugin\xiguananshan\mCDungeon\boss\ZombieKingService.class
 plugin\xiguananshan\mCDungeon\boss\RunService.class
@@ -81,6 +83,7 @@ plugin\xiguananshan\mCDungeon\ticks\SeedLightningTickTimer.class
 plugin\xiguananshan\mCDungeon\listeners\PlayerRightClickEntityEventListener.class
 plugin\xiguananshan\mCDungeon\ticks\StoneService.class
 plugin\xiguananshan\mCDungeon\ticks\BossService.class
+plugin\xiguananshan\mCDungeon\listeners\PlayerDiedEventListener.class
 plugin\xiguananshan\mCDungeon\listeners\PlayerUseItemEventListener$4.class
 plugin\xiguananshan\mCDungeon\ticks\FreezeTicksTimer$1.class
 plugin\xiguananshan\mCDungeon\ticks\LightningSkillService.class

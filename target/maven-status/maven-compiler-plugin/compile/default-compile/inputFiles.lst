@@ -26,6 +26,8 @@ C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeo
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\GunShootEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\IceBowListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerChangeMainHandItemEventListener.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerDiedEventListener.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerHealEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerJoinListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerOpenChestEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PlayerPickItemEventListener.java
@@ -54,6 +56,7 @@ C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeo
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PDCModifierService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PhysicAttackTicksTimer.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PhysicSwordSkillService.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PlayerDiedService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PlayerGameService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PlayerGunService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\PlayerLightningGunService.java

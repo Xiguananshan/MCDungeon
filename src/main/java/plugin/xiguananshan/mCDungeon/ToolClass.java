@@ -128,7 +128,9 @@ public class ToolClass {
    public static Map<UUID,Scoreboard> scoreboardMap;
    public static Map<UUID, PDCModify> modifyMap;
    public static HashSet<UUID> modified;
-
+   public static HashSet<UUID> died_players;
+   public static HashMap<UUID,Location> un_relief_players;
+   public static CornerData.Corner BossDoor;
    public static boolean isIceBow(ItemStack stack) {
       if (stack != null && stack.getType() == Material.BOW) {
          ItemMeta meta = stack.getItemMeta();
@@ -890,7 +892,7 @@ public class ToolClass {
                      }
                   }
                }
-
+               BossRoom = new CornerData.Corner(xamin.x(),xamin.z(),xamin.y(),xamax.x(),xamax.y(), xamax.z());
                TextDisplay display = world.spawn(new Location(world, (float)(xamin.x() + xamax.x()) / 2.0F + 0.5F, (float)(xamin.y() + xamax.y()) / 2.0F, (float)(xamin.z() + xamax.z()) / 2.0F), TextDisplay.class);
                (new BossRoomLabelService(display, new CornerData.Corner(xamin.x(), xamin.y(), xamin.z(), xamax.x(), xamax.y(), xamax.z()))).runTaskTimer(PLUGIN, 0L, 1L);
             }
@@ -913,7 +915,7 @@ public class ToolClass {
                      }
                   }
                }
-
+               BossRoom = new CornerData.Corner(xrmin.x(),xrmin.z(),xrmin.y(),xrmax.x(),xrmax.y(), xrmax.z());
                TextDisplay display = world.spawn(new Location(world, (float)(xrmin.x() + xrmax.x()) / 2.0F - 0.5F, (float)(xrmin.y() + xrmax.y()) / 2.0F, (float)(xrmin.z() + xrmax.z()) / 2.0F), TextDisplay.class);
                (new BossRoomLabelService(display, new CornerData.Corner(xrmin.x(), xrmin.y(), xrmin.z(), xrmax.x(), xrmax.y(), xrmax.z()))).runTaskTimer(PLUGIN, 0L, 1L);
             }
@@ -936,7 +938,7 @@ public class ToolClass {
                      }
                   }
                }
-
+               BossRoom = new CornerData.Corner(zamin.x(),zamax.z(),zamin.y(),zamax.x(),zamax.y(), zamax.z());
                TextDisplay display = world.spawn(new Location(world, (float)(zamin.x() + zamax.x()) / 2.0F, (float)(zamin.y() + zamax.y()) / 2.0F, (float)(zamin.z() + zamax.z()) / 2.0F + 0.5F), TextDisplay.class);
                (new BossRoomLabelService(display, new CornerData.Corner(zamin.x(), zamin.y(), zamin.z(), zamax.x(), zamax.y(), zamax.z()))).runTaskTimer(PLUGIN, 0L, 1L);
             }
@@ -959,7 +961,7 @@ public class ToolClass {
                      }
                   }
                }
-
+               BossRoom = new CornerData.Corner(zrmin.x(),zrmax.z(),zrmin.y(),zrmax.x(),zrmax.y(), zrmax.z());
                TextDisplay display = world.spawn(new Location(world, (float)(zrmin.x() + zrmax.x()) / 2.0F, (float)(zrmin.y() + zrmax.y()) / 2.0F, (float)(zrmin.z() + zrmax.z()) / 2.0F - 0.5F), TextDisplay.class);
                (new BossRoomLabelService(display, new CornerData.Corner(zrmin.x(), zrmin.y(), zrmin.z(), zrmax.x(), zrmax.y(), zrmax.z()))).runTaskTimer(PLUGIN, 0L, 1L);
             }
@@ -1285,6 +1287,8 @@ public class ToolClass {
       scoreboardMap = new HashMap<>();
       modifyMap = new HashMap<>();
       modified = new HashSet<>();
+      died_players = new HashSet<>();
+      un_relief_players = new HashMap<>();
       typeColorMap = new HashMap<>() {
          {
             this.put(DamageType.PHYSIC, Color.fromARGB(255, 255, 255, 255));
@@ -1510,6 +1514,7 @@ public class ToolClass {
       name = Component.text("遗愿终成之刀", NamedTextColor.GOLD);
       meta.displayName(name);
       meta.lore(List.of(Component.text("得到元素祝福的愿望终会达成，一定会的。攻击造成280点物理伤害", NamedTextColor.YELLOW), Component.text("元素：", NamedTextColor.YELLOW).append(Component.text(typeNameMap.get(DamageType.PHYSIC), NamedTextColor.nearestTo(TextColor.color((typeColorMap.get(DamageType.PHYSIC)).asRGB())))), Component.text("按住Shift+右键可以释放这把剑的技能", NamedTextColor.YELLOW), Component.text("技能：在上方生成一把铁剑，1秒后落下，落地产生冲击波，造成1500点物理伤害", NamedTextColor.YELLOW), Component.text("该武器无法被元素晶石强化", NamedTextColor.RED)));
+      PhysicSword.setItemMeta(meta);
       meta = Compass.getItemMeta();
       assert meta != null;
       pdc = meta.getPersistentDataContainer();
@@ -1545,6 +1550,9 @@ public class ToolClass {
    }
    public static void Start(){
       ToolClass.gaming = true;
+      died_players = new HashSet<>();
+
+      un_relief_players = new HashMap<>();
       for(Entity entity : Bukkit.selectEntities(Bukkit.getConsoleSender(),"@e[type=!minecraft:player]")){
          entity.remove();
       }

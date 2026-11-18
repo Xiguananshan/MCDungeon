@@ -21,6 +21,10 @@ public class BossRoomService extends BukkitRunnable {
     }
     @Override
     public void run() {
+        if(!ToolClass.gaming){
+            cancel();
+            return;
+        }
         if(!entity.isValid()){
             for(UUID uuid : ToolClass.game_players){
                 Player p = Bukkit.getPlayer(uuid);
@@ -43,6 +47,13 @@ public class BossRoomService extends BukkitRunnable {
                                     p.getWorld().playSound(new Location(p.getWorld(),x,y,z),Sound.BLOCK_WOOD_BREAK,3,1);
                                     p.getWorld().spawnParticle(Particle.BLOCK,new Location(p.getWorld(),x,y,z),15,Bukkit.createBlockData(Material.OAK_FENCE));
                                 }
+                            }
+                        }
+                    }
+                    for(int X = ToolClass.BossDoor.minx;X<=ToolClass.BossDoor.maxx;X++){
+                        for(int Y = ToolClass.BossDoor.miny;Y<=ToolClass.BossDoor.maxy;Y++){
+                            for(int Z = ToolClass.BossDoor.minz;Z <= ToolClass.BossDoor.maxz;Z++){
+                                p.getWorld().getBlockAt(X,Y,Z).setType(Material.DARK_OAK_FENCE,true);
                             }
                         }
                     }

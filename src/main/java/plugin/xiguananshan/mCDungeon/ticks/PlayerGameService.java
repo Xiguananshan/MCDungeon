@@ -22,6 +22,27 @@ public class PlayerGameService extends BukkitRunnable {
     public void run() {
         for(Player p : Bukkit.getOnlinePlayers()){
             if(ToolClass.gaming){
+                if(ToolClass.died_players.size() >= ToolClass.game_players.size()){
+                    ToolClass.gaming = false;
+                    for(UUID uuid : ToolClass.game_players){
+                        Player player = Bukkit.getPlayer(uuid);
+                        if(player == null) continue;
+                        player.teleport(new Location(player.getWorld(),0,-60,0));
+                        player.setGameMode(GameMode.ADVENTURE);
+                        Title title = Title.title(Component.text("Defeat", NamedTextColor.DARK_RED, TextDecoration.BOLD),
+                                Component.text("死于   第",NamedTextColor.YELLOW).append(Component.text(ToolClass.round,NamedTextColor.GREEN)).append(Component.text("层",NamedTextColor.YELLOW)),
+                                Title.Times.times(
+                                        Duration.ofMillis(500),
+                                        Duration.ofMillis(2000),
+                                        Duration.ofMillis(500)
+                                ));
+                        player.showTitle(title);
+
+                        player.getInventory().clear();
+                        ToolClass.reset(player);
+                    }
+                    ToolClass.game_players.clear();
+                }
                 if(!ToolClass.game_players.contains(p.getUniqueId())){
                     p.sendActionBar(Component.text("游戏已开始，请等待游戏结束", NamedTextColor.RED));
                 }else{
@@ -93,6 +114,13 @@ public class PlayerGameService extends BukkitRunnable {
                             assert mob != null;
                             new BossRoomService(mob).runTaskTimer(ToolClass.PLUGIN,0,1);
                             new BossBarService(mob,Component.text("ZombieKing", NamedTextColor.GOLD), BossBar.Color.RED).runTaskTimer(ToolClass.PLUGIN,0,1);
+                            for(int X = ToolClass.BossDoor.minx;X<=ToolClass.BossDoor.maxx;X++){
+                                for(int Y = ToolClass.BossDoor.miny;Y<=ToolClass.BossDoor.maxy;Y++){
+                                    for(int Z = ToolClass.BossDoor.minz;Z <= ToolClass.BossDoor.maxz;Z++){
+                                        p.getWorld().getBlockAt(X,Y,Z).setType(Material.DARK_OAK_FENCE,true);
+                                    }
+                                }
+                            }
                             ToolClass.BossRoom = null;
                             break;
                         }
