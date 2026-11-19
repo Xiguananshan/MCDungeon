@@ -1633,19 +1633,19 @@ public class ToolClass {
          player.teleport(new Location(player.getWorld(),14,101,14));
       }
    }
-   public static void Damage(LivingEntity goal,Player source,int damage,DamageType t){
+   public static void Damage(LivingEntity goal,Player source,int damage,DamageType t) {
       PersistentDataContainer pdc = source.getPersistentDataContainer();
-      Float lv = pdc.get(fromNamespaceKey("lv"),PersistentDataType.FLOAT);
-      Float la = pdc.get(fromNamespaceKey("la"),PersistentDataType.FLOAT);
-      if(lv != null && la != null){
+      Float lv = pdc.get(fromNamespaceKey("lv"), PersistentDataType.FLOAT);
+      Float la = pdc.get(fromNamespaceKey("la"), PersistentDataType.FLOAT);
+      if (lv != null && la != null) {
          double r = Math.random();
-         if(r<lv/100f){
-            damage = (int)Math.ceil(damage * (1f+la/100f));
-            ToolClass.typeMap.put(goal.getUniqueId(),t);
+         if (r < lv / 100f) {
+            damage = (int) Math.ceil(damage * (1f + la / 100f));
+            ToolClass.typeMap.put(goal.getUniqueId(), t);
             goal.damage(damage);
-            SpawnTextEntity(Component.text("暴击",NamedTextColor.DARK_RED), goal.getWorld(), goal.getLocation().clone().add(0,2.5,0));
-         }else{
-            ToolClass.typeMap.put(goal.getUniqueId(),t);
+            SpawnTextEntity(Component.text("暴击", NamedTextColor.DARK_RED), goal.getWorld(), goal.getLocation().clone().add(0, 2.5, 0));
+         } else {
+            ToolClass.typeMap.put(goal.getUniqueId(), t);
             goal.damage(damage);
          }
       }
