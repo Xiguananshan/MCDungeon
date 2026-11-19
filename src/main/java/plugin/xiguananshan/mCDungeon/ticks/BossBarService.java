@@ -31,6 +31,16 @@ public class BossBarService extends BukkitRunnable {
     }
     @Override
     public void run() {
+        if(!ToolClass.gaming){
+            for(Player p : Bukkit.getOnlinePlayers()){
+                if(p != null){
+                    p.hideBossBar(bossBar);
+                }
+
+            }
+            cancel();
+            return;
+        }
         if(!boss.isValid()){
             for(UUID uuid : ToolClass.game_players){
                 Player p = Bukkit.getPlayer(uuid);

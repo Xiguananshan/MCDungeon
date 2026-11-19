@@ -78,6 +78,15 @@ public class EntityDamageEventListener implements Listener {
                                 String ele = pdc1.get(ToolClass.fromNamespaceKey("element"),PersistentDataType.STRING);
                                 assert ele!=null;
                                 try{
+                                    Float lv = p.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("lv"),PersistentDataType.FLOAT);
+                                    Float la = p.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("la"),PersistentDataType.FLOAT);
+                                    if(lv != null && la != null){
+                                        double r = Math.random();
+                                        if(r<lv/100f){
+                                            k = (int)Math.ceil(k+(la/100f)*k);
+                                            ToolClass.SpawnTextEntity(Component.text("暴击",NamedTextColor.DARK_RED), e.getEntity().getWorld(), e.getEntity().getLocation().clone().add(0,2.5,0));
+                                        }
+                                    }
                                     DamageType type = DamageType.valueOf(ele);
                                     ToolClass.typeMap.put(l.getUniqueId(),type);
                                     Long ticks = ToolClass.sword_tick.get(l.getUniqueId());
@@ -97,6 +106,12 @@ public class EntityDamageEventListener implements Listener {
             if(pdc.has(ToolClass.fromNamespaceKey("entity"))){
                 if(e.getDamageSource().getCausingEntity() instanceof LivingEntity ll){
                     if(ll.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("entity"))){
+                        e.setCancelled(true);
+                        return;
+                    }
+                }
+                if(e.getDamageSource().getCausingEntity() instanceof LightningStrike strike){
+                    if(strike.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("spawn"))){
                         e.setCancelled(true);
                         return;
                     }
@@ -166,7 +181,8 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.SpawnTextEntity(Component.text("冻结", NamedTextColor.AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
-                                    ToolClass.freeze_tick.put(l.getUniqueId(),40);
+                                    if(!pdc.has(ToolClass.fromNamespaceKey("boss")))
+                                        ToolClass.freeze_tick.put(l.getUniqueId(),40);
                                 }else if(types.contains(DamageType.GRASS)){
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.GRASS);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.WATER);
@@ -233,7 +249,8 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.ICE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.WATER);
                                     ToolClass.SpawnTextEntity(Component.text("冻结", NamedTextColor.AQUA),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
-                                    ToolClass.freeze_tick.put(l.getUniqueId(),40);
+                                    if(!pdc.has(ToolClass.fromNamespaceKey("boss")))
+                                        ToolClass.freeze_tick.put(l.getUniqueId(),40);
                                 }else if(types.contains(DamageType.FIRE)){
                                     e.setDamage(e.getDamage()*1.5);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.ICE);
@@ -510,18 +527,32 @@ public class EntityDamageEventListener implements Listener {
                     Bukkit.getPluginManager().callEvent(new GunShotEvent((int)Math.ceil(e.getDamage()), DamageType.PHYSIC,l,true,source));
                 }
                 Integer health = pdc.get(ToolClass.fromNamespaceKey("health"), PersistentDataType.INTEGER);
+                Integer d = pdc.get(ToolClass.fromNamespaceKey("NearProtect"),PersistentDataType.INTEGER);
                 if(health != null){
-                    health -= (int)Math.ceil(e.getDamage());
-                    pdc.set(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER,health);
-                    if(health <= 0){
+                    if(d == null || d<=0){
+                        health -= (int)Math.ceil(e.getDamage());
+                        pdc.set(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER,health);
+                        if(health <= 0){
 
-                        if(l.getWorld().getBlockAt(l.getLocation()).getType() == Material.BLUE_ICE){
-                            l.getWorld().setBlockData(l.getLocation(),Bukkit.createBlockData(Material.AIR));
+                            if(l.getWorld().getBlockAt(l.getLocation()).getType() == Material.BLUE_ICE){
+                                l.getWorld().setBlockData(l.getLocation(),Bukkit.createBlockData(Material.AIR));
 
+                            }
+                            ToolClass.freeze_tick.remove(l.getUniqueId());
+                            l.setHealth(0f);
                         }
-                        ToolClass.freeze_tick.remove(l.getUniqueId());
-                        l.setHealth(0f);
+                    }else{
+                        if(e.getDamageSource().getCausingEntity()  != null){
+                            if(!e.getDamageSource().isIndirect()){
+                                if(e.getDamageSource().getCausingEntity() instanceof Player){
+                                    d -= (int)Math.ceil(e.getDamage());
+                                    pdc.set(ToolClass.fromNamespaceKey("NearProtect"),PersistentDataType.INTEGER,d);
+                                }
+                            }
+                        }
                     }
+
+
                 }
                 e.setDamage(0);
             }

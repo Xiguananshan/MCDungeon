@@ -13,11 +13,14 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+
+import io.papermc.paper.FeatureHooks;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.Title.Times;
+import net.minecraft.world.entity.EntityTypes;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -27,17 +30,9 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Interaction;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TextDisplay;
-import org.bukkit.entity.Zombie;
+import org.bukkit.entity.*;
 import org.bukkit.entity.Display.Billboard;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -45,6 +40,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.structure.Structure;
@@ -53,6 +50,7 @@ import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Vector3f;
 import plugin.xiguananshan.mCDungeon.activity.LiveShop;
+import plugin.xiguananshan.mCDungeon.boss.CommandBlockService;
 import plugin.xiguananshan.mCDungeon.boss.ZombieKingService;
 import plugin.xiguananshan.mCDungeon.data.*;
 import plugin.xiguananshan.mCDungeon.enums.CrossStructureType;
@@ -471,7 +469,6 @@ public class ToolClass {
                      }
                   }
                }
-               // 再清一遍旧地图的外包围盒，处理“有方块但没被 corner 记录”的历史残留
                if (!data.corners.isEmpty()) {
                   int margin = 30;
                   for(int x = minX - margin; x <= maxX + margin; ++x) {
@@ -892,7 +889,7 @@ public class ToolClass {
                      }
                   }
                }
-               BossRoom = new CornerData.Corner(xamin.x(),xamin.z(),xamin.y(),xamax.x(),xamax.y(), xamax.z());
+               BossDoor = new CornerData.Corner(xamin.x(), xamin.y(), xamin.z(), xamax.x(), xamax.y(), xamax.z());
                TextDisplay display = world.spawn(new Location(world, (float)(xamin.x() + xamax.x()) / 2.0F + 0.5F, (float)(xamin.y() + xamax.y()) / 2.0F, (float)(xamin.z() + xamax.z()) / 2.0F), TextDisplay.class);
                (new BossRoomLabelService(display, new CornerData.Corner(xamin.x(), xamin.y(), xamin.z(), xamax.x(), xamax.y(), xamax.z()))).runTaskTimer(PLUGIN, 0L, 1L);
             }
@@ -915,7 +912,7 @@ public class ToolClass {
                      }
                   }
                }
-               BossRoom = new CornerData.Corner(xrmin.x(),xrmin.z(),xrmin.y(),xrmax.x(),xrmax.y(), xrmax.z());
+               BossDoor = new CornerData.Corner(xrmin.x(), xrmin.y(), xrmin.z(), xrmax.x(), xrmax.y(), xrmax.z());
                TextDisplay display = world.spawn(new Location(world, (float)(xrmin.x() + xrmax.x()) / 2.0F - 0.5F, (float)(xrmin.y() + xrmax.y()) / 2.0F, (float)(xrmin.z() + xrmax.z()) / 2.0F), TextDisplay.class);
                (new BossRoomLabelService(display, new CornerData.Corner(xrmin.x(), xrmin.y(), xrmin.z(), xrmax.x(), xrmax.y(), xrmax.z()))).runTaskTimer(PLUGIN, 0L, 1L);
             }
@@ -938,7 +935,7 @@ public class ToolClass {
                      }
                   }
                }
-               BossRoom = new CornerData.Corner(zamin.x(),zamax.z(),zamin.y(),zamax.x(),zamax.y(), zamax.z());
+               BossDoor = new CornerData.Corner(zamin.x(), zamin.y(), zamin.z(), zamax.x(), zamax.y(), zamax.z());
                TextDisplay display = world.spawn(new Location(world, (float)(zamin.x() + zamax.x()) / 2.0F, (float)(zamin.y() + zamax.y()) / 2.0F, (float)(zamin.z() + zamax.z()) / 2.0F + 0.5F), TextDisplay.class);
                (new BossRoomLabelService(display, new CornerData.Corner(zamin.x(), zamin.y(), zamin.z(), zamax.x(), zamax.y(), zamax.z()))).runTaskTimer(PLUGIN, 0L, 1L);
             }
@@ -961,7 +958,7 @@ public class ToolClass {
                      }
                   }
                }
-               BossRoom = new CornerData.Corner(zrmin.x(),zrmax.z(),zrmin.y(),zrmax.x(),zrmax.y(), zrmax.z());
+               BossDoor = new CornerData.Corner(zrmin.x(), zrmin.y(), zrmin.z(), zrmax.x(), zrmax.y(), zrmax.z());
                TextDisplay display = world.spawn(new Location(world, (float)(zrmin.x() + zrmax.x()) / 2.0F, (float)(zrmin.y() + zrmax.y()) / 2.0F, (float)(zrmin.z() + zrmax.z()) / 2.0F - 0.5F), TextDisplay.class);
                (new BossRoomLabelService(display, new CornerData.Corner(zrmin.x(), zrmin.y(), zrmin.z(), zrmax.x(), zrmax.y(), zrmax.z()))).runTaskTimer(PLUGIN, 0L, 1L);
             }
@@ -1110,6 +1107,35 @@ public class ToolClass {
             zombie.setCustomNameVisible(true);
             service.runTaskTimer(PLUGIN, 0L, 1L);
             return zombie;
+         }
+         case 2->{
+            World world = loc.getWorld();
+            Skeleton skeleton = world.spawn(loc, Skeleton.class);
+            skeleton.getPersistentDataContainer().set(fromNamespaceKey("health"), PersistentDataType.INTEGER, 26000);
+            skeleton.getPersistentDataContainer().set(fromNamespaceKey("entity"), PersistentDataType.BOOLEAN, true);
+            skeleton.getPersistentDataContainer().set(fromNamespaceKey("boss"), PersistentDataType.BOOLEAN, true);
+            EntityEquipment equipment = skeleton.getEquipment();
+            List<ItemStack> stacks = fromEquipment(Material.COMMAND_BLOCK, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
+            equipment.setHelmet(stacks.get(0));
+            equipment.setChestplate(stacks.get(1));
+            equipment.setLeggings(stacks.get(2));
+            equipment.setBoots(stacks.get(3));
+            equipment.setHelmetDropChance(0.0F);
+            equipment.setChestplateDropChance(0.0F);
+            equipment.setLeggingsDropChance(0.0F);
+            equipment.setBootsDropChance(0.0F);
+            equipment.setItemInMainHandDropChance(0.0F);
+            ItemStack stack = new ItemStack(Material.STICK);
+            ItemMeta m = stack.getItemMeta();
+            m.addEnchant(Enchantment.SHARPNESS,3,true);
+            stack.setItemMeta(m);
+            equipment.setItemInMainHand(stack);
+            skeleton.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,Integer.MAX_VALUE,0,false,false));
+            (Objects.requireNonNull(skeleton.getAttribute(Attribute.MOVEMENT_SPEED))).setBaseValue(0.35);
+            skeleton.setCustomNameVisible(true);
+            CommandBlockService service = new CommandBlockService(skeleton,BossRoom);
+            service.runTaskTimer(PLUGIN,0,1);
+            return skeleton;
          }
 
 
@@ -1548,14 +1574,25 @@ public class ToolClass {
       ShopData.put(GodSpawner, new CostData(24, 15));
       ShopData.put(Gold, new CostData(20, 0));
    }
+
+
+
+
    public static void Start(){
       ToolClass.gaming = true;
       died_players = new HashSet<>();
 
       un_relief_players = new HashMap<>();
-      for(Entity entity : Bukkit.selectEntities(Bukkit.getConsoleSender(),"@e[type=!minecraft:player]")){
-         entity.remove();
+      World world = Bukkit.getWorld("world");
+      if(world != null){
+         CraftWorld craftWorld = (CraftWorld) world;
+         for(net.minecraft.world.entity.Entity entity : FeatureHooks.getAllEntities(craftWorld.getHandle())){
+            if(!entity.getType().equals(EntityTypes.PLAYER)){
+               entity.remove(net.minecraft.world.entity.Entity.RemovalReason.KILLED);
+            }
+         }
       }
+
       List<Player> players = new ArrayList<>();
       for(UUID uuid : game_players) {
          Player player = Bukkit.getPlayer(uuid);
@@ -1574,8 +1611,14 @@ public class ToolClass {
    }
    public static void NextRound(){
       ToolClass.round++;
-      for(Entity entity : Bukkit.selectEntities(Bukkit.getConsoleSender(),"@e[type=!minecraft:player]")){
-         entity.remove();
+      World world = Bukkit.getWorld("world");
+      if(world != null){
+         CraftWorld craftWorld = (CraftWorld) world;
+         for(net.minecraft.world.entity.Entity entity : FeatureHooks.getAllEntities(craftWorld.getHandle())){
+            if(!entity.getType().equals(EntityTypes.PLAYER)){
+               entity.remove(net.minecraft.world.entity.Entity.RemovalReason.KILLED);
+            }
+         }
       }
       List<Player> players = new ArrayList<>();
       for(UUID uuid : game_players) {

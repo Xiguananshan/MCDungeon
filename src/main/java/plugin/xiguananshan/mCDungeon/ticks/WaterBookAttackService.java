@@ -29,11 +29,14 @@ public class WaterBookAttackService extends BukkitRunnable {
 
 
         World world = core.getWorld();
-        for(double a = 0; a<=3;a+=0.2){
-            for(double b = 0;b<=Math.PI*2;b+=0.2){
-                world.spawnParticle(Particle.DUST,core.clone().add(new Vector(a*Math.cos(b),0,a*Math.sin(b))),1,new Particle.DustOptions(ToolClass.typeColorMap.get(DamageType.WATER),1));
+        if(ticks % 10 == 0){
+            for(double a = 0; a<=3;a+=0.4){
+                for(double b = 0;b<=Math.PI*2;b+=0.4){
+                    world.spawnParticle(Particle.DUST,core.clone().add(new Vector(a*Math.cos(b),0,a*Math.sin(b))),1,new Particle.DustOptions(ToolClass.typeColorMap.get(DamageType.WATER),1));
+                }
             }
         }
+
         if(ticks%20 == 0){
 
             Collection<Entity> entities = world.getNearbyEntities(core,3,1,3);

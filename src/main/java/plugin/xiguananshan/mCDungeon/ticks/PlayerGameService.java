@@ -24,6 +24,7 @@ public class PlayerGameService extends BukkitRunnable {
             if(ToolClass.gaming){
                 if(ToolClass.died_players.size() >= ToolClass.game_players.size()){
                     ToolClass.gaming = false;
+
                     for(UUID uuid : ToolClass.game_players){
                         Player player = Bukkit.getPlayer(uuid);
                         if(player == null) continue;
@@ -54,6 +55,7 @@ public class PlayerGameService extends BukkitRunnable {
                     y = p.getY();
                     z = p.getZ();
                     double margin = 2.0;
+
                     for(CornerData.Corner corner : ToolClass.EntityRoomData.corners){
                         if(corner.minx + margin <= x && x <= corner.maxx - margin
                                 && corner.miny <= y && y <= corner.maxy
@@ -64,6 +66,7 @@ public class PlayerGameService extends BukkitRunnable {
                                 safe = p.getLocation().clone();
                             }
                             for(UUID uuid : ToolClass.game_players){
+
                                 Player player = Bukkit.getPlayer(uuid);
                                 if(player != null){
                                     Title title = Title.title(Component.text("Fight", NamedTextColor.DARK_RED, TextDecoration.BOLD),
@@ -88,7 +91,6 @@ public class PlayerGameService extends BukkitRunnable {
                         if(ToolClass.BossRoom.minx + margin <= x && x <= ToolClass.BossRoom.maxx - margin
                                 && ToolClass.BossRoom.miny <= y && y <= ToolClass.BossRoom.maxy
                                 && ToolClass.BossRoom.minz + margin <= z && z <= ToolClass.BossRoom.maxz - margin){
-
                             Random random = new Random();
                             Location safe = EntityRoomCheckService.findSafeLocation(p.getWorld(), ToolClass.BossRoom, random);
                             if(safe == null){
@@ -97,6 +99,7 @@ public class PlayerGameService extends BukkitRunnable {
                             for(UUID uuid : ToolClass.game_players){
                                 Player player = Bukkit.getPlayer(uuid);
                                 if(player != null){
+                                    /*
                                     Title title = Title.title(Component.text("Fight", NamedTextColor.DARK_RED, TextDecoration.BOLD),
                                             Component.text("ZombieKing", NamedTextColor.GOLD, TextDecoration.BOLD),
                                             Title.Times.times(
@@ -107,17 +110,47 @@ public class PlayerGameService extends BukkitRunnable {
                                     player.showTitle(title);
                                     player.teleport(safe);
                                     player.playSound(player, Sound.ENTITY_ENDER_DRAGON_AMBIENT,3,1);
+                                    */
+                                    Title title = Title.title(Component.text("Fight", NamedTextColor.DARK_RED, TextDecoration.BOLD),
+                                            Component.text("CommandBlock", NamedTextColor.GOLD, TextDecoration.BOLD),
+                                            Title.Times.times(
+                                                    Duration.ofMillis(500),
+                                                    Duration.ofMillis(2000),
+                                                    Duration.ofMillis(500)
+                                            ));
+                                    player.showTitle(title);
+                                    player.teleport(safe);
+                                    player.playSound(player, Sound.ENTITY_ENDER_DRAGON_AMBIENT,3,1);
                                 }
                             }
+                            /*
                             EntityRoomCheckService.setAllDoors(Material.OAK_FENCE, p.getWorld());
                             Mob mob = ToolClass.SummonBoss(1,new Location(p.getWorld(),ToolClass.BossRoom.minx + 14,ToolClass.BossRoom.miny+1,ToolClass.BossRoom.minz+14));
                             assert mob != null;
                             new BossRoomService(mob).runTaskTimer(ToolClass.PLUGIN,0,1);
                             new BossBarService(mob,Component.text("ZombieKing", NamedTextColor.GOLD), BossBar.Color.RED).runTaskTimer(ToolClass.PLUGIN,0,1);
-                            for(int X = ToolClass.BossDoor.minx;X<=ToolClass.BossDoor.maxx;X++){
-                                for(int Y = ToolClass.BossDoor.miny;Y<=ToolClass.BossDoor.maxy;Y++){
-                                    for(int Z = ToolClass.BossDoor.minz;Z <= ToolClass.BossDoor.maxz;Z++){
-                                        p.getWorld().getBlockAt(X,Y,Z).setType(Material.DARK_OAK_FENCE,true);
+                            if(ToolClass.BossDoor != null){
+                                for(int X = ToolClass.BossDoor.minx;X<=ToolClass.BossDoor.maxx;X++){
+                                    for(int Y = ToolClass.BossDoor.miny;Y<=ToolClass.BossDoor.maxy;Y++){
+                                        for(int Z = ToolClass.BossDoor.minz;Z <= ToolClass.BossDoor.maxz;Z++){
+                                            p.getWorld().getBlockAt(X,Y,Z).setType(Material.DARK_OAK_FENCE,true);
+                                        }
+                                    }
+                                }
+                            }
+
+                             */
+                            EntityRoomCheckService.setAllDoors(Material.OAK_FENCE, p.getWorld());
+                            Mob mob = ToolClass.SummonBoss(2,new Location(p.getWorld(),ToolClass.BossRoom.minx + 14,ToolClass.BossRoom.miny+1,ToolClass.BossRoom.minz+14));
+                            assert mob != null;
+                            new BossRoomService(mob).runTaskTimer(ToolClass.PLUGIN,0,1);
+                            new BossBarService(mob,Component.text("CommandBlock", NamedTextColor.GOLD), BossBar.Color.RED).runTaskTimer(ToolClass.PLUGIN,0,1);
+                            if(ToolClass.BossDoor != null){
+                                for(int X = ToolClass.BossDoor.minx;X<=ToolClass.BossDoor.maxx;X++){
+                                    for(int Y = ToolClass.BossDoor.miny;Y<=ToolClass.BossDoor.maxy;Y++){
+                                        for(int Z = ToolClass.BossDoor.minz;Z <= ToolClass.BossDoor.maxz;Z++){
+                                            p.getWorld().getBlockAt(X,Y,Z).setType(Material.DARK_OAK_FENCE,true);
+                                        }
                                     }
                                 }
                             }

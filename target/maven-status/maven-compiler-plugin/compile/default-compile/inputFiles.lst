@@ -1,4 +1,5 @@
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\activity\LiveShop.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\boss\CommandBlockService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\boss\ZombieKingService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\command\GenerateTestCommand.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\command\SettingsCommand.java
@@ -36,6 +37,7 @@ C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeo
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\listeners\PotionBreakEventListener.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\MCDungeon.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossBarService.java
+C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossNearProtectBarService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossRoomLabelService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossRoomService.java
 C:\Users\Admin\IdeaProjects\MCDungeon\src\main\java\plugin\xiguananshan\mCDungeon\ticks\BossService.java
