@@ -15,13 +15,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import plugin.xiguananshan.mCDungeon.ToolClass;
+import plugin.xiguananshan.mCDungeon.data.DataModify;
 import plugin.xiguananshan.mCDungeon.enums.DamageType;
 import plugin.xiguananshan.mCDungeon.events.GunShotEvent;
 
+import plugin.xiguananshan.mCDungeon.ticks.DataModifierService;
 import plugin.xiguananshan.mCDungeon.ticks.RockLifeTickTimer;
 import plugin.xiguananshan.mCDungeon.ticks.SeedLightningTickTimer;
 
-import javax.swing.*;
 import java.util.*;
 
 public class EntityDamageEventListener implements Listener {
@@ -78,8 +79,8 @@ public class EntityDamageEventListener implements Listener {
                                 String ele = pdc1.get(ToolClass.fromNamespaceKey("element"),PersistentDataType.STRING);
                                 assert ele!=null;
                                 try{
-                                    Float lv = p.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("lv"),PersistentDataType.FLOAT);
-                                    Float la = p.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("la"),PersistentDataType.FLOAT);
+                                    Float lv = ToolClass.getPlayerFloat(p.getUniqueId(),"lv");
+                                    Float la = ToolClass.getPlayerFloat(p.getUniqueId(),"la");
                                     if(lv != null && la != null){
                                         double r = Math.random();
                                         if(r<lv/100f){
@@ -89,6 +90,7 @@ public class EntityDamageEventListener implements Listener {
                                     }
                                     DamageType type = DamageType.valueOf(ele);
                                     ToolClass.typeMap.put(l.getUniqueId(),type);
+                                    ToolClass.playerMap.put(l.getUniqueId(),p.getUniqueId());
                                     Long ticks = ToolClass.sword_tick.get(l.getUniqueId());
                                     if(ticks == null) ticks = 0L;
                                     e.setDamage(System.currentTimeMillis() - ticks > 300 ? k : 1);
@@ -133,7 +135,10 @@ public class EntityDamageEventListener implements Listener {
                         }
                     }
                 }
+                UUID damager = ToolClass.playerMap.get(l.getUniqueId());
                 if(ToolClass.typeMap.containsKey(l.getUniqueId())){
+
+                    ToolClass.playerMap.get(l.getUniqueId());
                     DamageType t = ToolClass.typeMap.get(l.getUniqueId());
                     ToolClass.typeMap.remove(l.getUniqueId());
                     if(ToolClass.entity_defence.containsKey(e.getEntity().getUniqueId())){
@@ -205,6 +210,25 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.SpawnTextEntity(Component.text("蒸发", NamedTextColor.GOLD), l.getWorld(), l.getLocation().add(0, l.getHeight() + 0.2f, 0));
                                 }else if(types.contains(DamageType.LIGHTNING)){
+                                    if(damager != null){
+                                        Player p = Bukkit.getPlayer(damager);
+                                        if(p!=null){
+                                            boolean exp_eps = false;
+                                            for(ItemStack stack : p.getInventory()){
+                                                if(stack != null){
+                                                    ItemMeta meta = stack.getItemMeta();
+                                                    assert meta != null;
+                                                    if(meta.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("explode_express"))){
+                                                        exp_eps = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            if(exp_eps){
+                                                DataModifierService.AddModify(new DataModify(DataModify.Modifier.ADD,60,14.5f,"la",damager));
+                                            }
+                                        }
+                                    }
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
@@ -424,6 +448,25 @@ public class EntityDamageEventListener implements Listener {
                                     ToolClass.SpawnTextEntity(Component.text("感电", NamedTextColor.LIGHT_PURPLE),l.getWorld(),l.getLocation().add(0,l.getHeight()+0.2f,0));
                                     e.setDamage(e.getDamage()*1.2f);
                                 }else if(types.contains(DamageType.FIRE)){
+                                    if(damager != null){
+                                        Player p = Bukkit.getPlayer(damager);
+                                        if(p!=null){
+                                            boolean exp_eps = false;
+                                            for(ItemStack stack : p.getInventory()){
+                                                if(stack != null){
+                                                    ItemMeta meta = stack.getItemMeta();
+                                                    assert meta != null;
+                                                    if(meta.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("explode_express"))){
+                                                        exp_eps = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            if(exp_eps){
+                                                DataModifierService.AddModify(new DataModify(DataModify.Modifier.ADD,60,14.5f,"la",damager));
+                                            }
+                                        }
+                                    }
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
                                     ToolClass.entity_type.get(l.getUniqueId()).remove(DamageType.FIRE);
                                     ToolClass.element_type.get(l.getUniqueId()).remove(DamageType.LIGHTNING);
@@ -533,7 +576,44 @@ public class EntityDamageEventListener implements Listener {
                         health -= (int)Math.ceil(e.getDamage());
                         pdc.set(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER,health);
                         if(health <= 0){
-
+                            Player p = null;
+                            if (damager != null) {
+                                p = Bukkit.getPlayer(damager);
+                            }
+                            if(p != null){
+                                for(int slot = 0;slot<p.getInventory().getSize();slot++){
+                                    ItemStack stack = p.getInventory().getItem(slot);
+                                    if(stack != null){
+                                        ItemMeta meta = stack.getItemMeta();
+                                        assert meta != null;
+                                        if(meta.getPersistentDataContainer().has(ToolClass.fromNamespaceKey("health_container"))){
+                                            Integer h = meta.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER);
+                                            Integer pro = meta.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("process"),PersistentDataType.INTEGER);
+                                            if(h!= null && pro != null){
+                                                if(Math.random()<0.4){
+                                                    pro += (int)Math.ceil(0.1*e.getDamage());
+                                                    while(pro>=100){
+                                                        pro-=100;
+                                                        if(h<10){
+                                                            h++;
+                                                        }
+                                                    }
+                                                    meta.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER,h);
+                                                    meta.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("process"),PersistentDataType.INTEGER,pro);
+                                                    List<Component> lore = meta.lore();
+                                                    if(lore != null){
+                                                        lore.set(4,Component.text("当前生命点：",NamedTextColor.YELLOW).append(Component.text(h,NamedTextColor.GREEN)).append(Component.text("/10",NamedTextColor.GREEN)));
+                                                        lore.set(5,Component.text("当前充能进度：",NamedTextColor.YELLOW).append(Component.text(pro,NamedTextColor.GREEN)).append(Component.text("%",NamedTextColor.GREEN)));
+                                                    }
+                                                    meta.lore(lore);
+                                                    stack.setItemMeta(meta);
+                                                    p.getInventory().setItem(slot,stack);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             if(l.getWorld().getBlockAt(l.getLocation()).getType() == Material.BLUE_ICE){
                                 l.getWorld().setBlockData(l.getLocation(),Bukkit.createBlockData(Material.AIR));
 

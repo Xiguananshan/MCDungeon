@@ -22,6 +22,11 @@ public class TestGunCommand implements CommandExecutor {
             p.getInventory().addItem(ToolClass.fromItem(ToolClass.IceBow));
             p.getInventory().addItem(ToolClass.fromItem(ToolClass.PhysicSword));
             p.getInventory().addItem(ToolClass.fromItem(ToolClass.GodSpawner));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.ExplodeExpress));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.Goal));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.HealthContainer));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.SuperManPotion));
+            p.getInventory().addItem(ToolClass.fromItem(ToolClass.SuperManPotionPro));
         }
         return false;
     }

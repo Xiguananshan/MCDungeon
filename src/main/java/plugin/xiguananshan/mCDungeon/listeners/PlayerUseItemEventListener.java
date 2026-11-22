@@ -11,6 +11,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -351,6 +352,32 @@ public class PlayerUseItemEventListener implements Listener {
                         }
                         ToolClass.book_tick.put(e.getPlayer().getUniqueId(),System.currentTimeMillis());
                     }
+                }
+            }
+            if(pdc.has(ToolClass.fromNamespaceKey("health_container"))){
+                Integer h = meta.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER);
+                Integer pro = meta.getPersistentDataContainer().get(ToolClass.fromNamespaceKey("process"),PersistentDataType.INTEGER);
+                if(h!=null && pro != null){
+                    if(h>0){
+                        h--;
+                        e.getPlayer().heal(2, EntityRegainHealthEvent.RegainReason.MAGIC);
+                        e.getPlayer().playSound(e.getPlayer(),Sound.ENTITY_PLAYER_BURP,3,1);
+                    }else{
+                        e.getPlayer().sendMessage(Component.text("生命点不足",NamedTextColor.RED));
+                        e.getPlayer().playSound(e.getPlayer(),Sound.BLOCK_NOTE_BLOCK_HARP,3,1);
+                    }
+                    meta.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("health"),PersistentDataType.INTEGER,h);
+                    meta.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("process"),PersistentDataType.INTEGER,pro);
+                    List<Component> lore =  meta.lore();
+                    if(lore!= null){
+                        lore.set(4,Component.text("当前生命点：",NamedTextColor.YELLOW).append(Component.text(h,NamedTextColor.GREEN)).append(Component.text("/10",NamedTextColor.GREEN)));
+                        lore.set(5,Component.text("当前充能进度：",NamedTextColor.YELLOW).append(Component.text(pro,NamedTextColor.GREEN)).append(Component.text("%",NamedTextColor.GREEN)));
+                    }
+                    meta.lore(lore);
+                    ItemStack stack = e.getPlayer().getInventory().getItemInMainHand();
+                    stack.setItemMeta(meta);
+                    e.getPlayer().getInventory().setItemInMainHand(stack);
+                    e.setCancelled(true);
                 }
             }
             if(pdc.has(ToolClass.fromNamespaceKey("count"))){

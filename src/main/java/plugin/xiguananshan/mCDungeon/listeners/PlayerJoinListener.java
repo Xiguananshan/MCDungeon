@@ -21,6 +21,8 @@ import plugin.xiguananshan.mCDungeon.ticks.PlayerRockDefenceTickTimer;
 import plugin.xiguananshan.mCDungeon.ticks.PlayerSkillService;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PlayerJoinListener implements Listener {
     @EventHandler
@@ -48,10 +50,9 @@ public class PlayerJoinListener implements Listener {
             service.runTaskTimer(ToolClass.PLUGIN,0,1);
             ToolClass.lightningGunServiceMap.put(e.getPlayer().getUniqueId(),service);
         }
-        if(!e.getPlayer().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("lv")) || !e.getPlayer().getPersistentDataContainer().has(ToolClass.fromNamespaceKey("la"))){
-            e.getPlayer().getPersistentDataContainer().set(ToolClass.fromNamespaceKey("lv"), PersistentDataType.FLOAT,5f);
-            e.getPlayer().getPersistentDataContainer().set(ToolClass.fromNamespaceKey("la"), PersistentDataType.FLOAT,50f);
-        }
+        Map<String,Float> floatMap = ToolClass.playerFloatData(e.getPlayer().getUniqueId());
+        floatMap.putIfAbsent("lv",5f);
+        floatMap.putIfAbsent("la",50f);
         if(!ToolClass.scoreboardMap.containsKey(e.getPlayer().getUniqueId())){
             Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
             Objective info_main = scoreboard.registerNewObjective("info_main", Criteria.DUMMY,Component.text("玩家信息",NamedTextColor.BLUE));
@@ -68,6 +69,7 @@ public class PlayerJoinListener implements Listener {
             e.getPlayer().teleport(new Location(e.getPlayer().getWorld(),0,-60,0));
             e.getPlayer().setGameMode(GameMode.ADVENTURE);
             e.getPlayer().getInventory().clear();
+            e.getPlayer().clearActivePotionEffects();
             Title title = Title.title(Component.text("MCDungeon Beta", NamedTextColor.GREEN, TextDecoration.BOLD),
                     Component.text("玩得开心",NamedTextColor.YELLOW),
                     Title.Times.times(

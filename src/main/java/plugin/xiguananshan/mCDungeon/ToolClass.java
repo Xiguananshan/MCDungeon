@@ -2,6 +2,8 @@ package plugin.xiguananshan.mCDungeon;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import java.time.Duration;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,14 +15,17 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import io.papermc.paper.FeatureHooks;
+import ca.spottedleaf.moonrise.patches.chunk_system.io.MoonriseRegionFileIO.RegionDataController;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.Title.Times;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -38,6 +43,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -80,11 +86,17 @@ public class ToolClass {
    public static ItemStack GodSpawner;
    public static ItemStack ElementStone;
    public static ItemStack Compass;
+   public static ItemStack Goal;
    public static ItemStack Iron;
    public static ItemStack Gold;
+   public static ItemStack HealthContainer;
+   public static ItemStack ExplodeExpress;
+   public static ItemStack SuperManPotion;
+   public static ItemStack SuperManPotionPro;
    public static Map<ItemStack, Float> itemPool;
    public static Map<UUID, Long> Shoot_timer;
    public static Map<UUID, DamageType> typeMap;
+   public static Map<UUID,UUID> playerMap;
    public static Map<UUID, Map<DamageType, Integer>> entity_defence;
    public static Map<UUID, HashSet<DamageType>> entity_type;
    public static Map<UUID, Map<DamageType, Integer>> element_type;
@@ -101,6 +113,8 @@ public class ToolClass {
    public static Map<UUID, Integer> fireBookSkillTick;
    public static Map<UUID, Long> book_tick;
    public static Map<UUID, Integer> IceBowSkillTick;
+   public static Map<UUID,Integer> super_man_ticks;
+   public static Map<UUID,Map<String,Float>> player_float_data;
    public static Integer max_item_id;
    public static List<UUID> game_players;
    public static boolean gaming;
@@ -113,6 +127,7 @@ public class ToolClass {
    public static Structure CENTER_ROOM_1_2;
    public static Structure SHOP_ROOM_1_1;
    public static Structure Box_ROOM_1_1;
+   public static Structure ANCIENT_POOL;
    public static StorageManager storageManager;
    public static CornerData EntityRoomData;
    public static Map<UUID, Long> sword_tick;
@@ -124,7 +139,7 @@ public class ToolClass {
    public static Integer round = 1;
    public static CornerData.Corner BossRoom;
    public static Map<UUID,Scoreboard> scoreboardMap;
-   public static Map<UUID, PDCModify> modifyMap;
+   public static Map<UUID, DataModify> modifyMap;
    public static HashSet<UUID> modified;
    public static HashSet<UUID> died_players;
    public static HashMap<UUID,Location> un_relief_players;
@@ -244,6 +259,31 @@ public class ToolClass {
 
    public static NamespacedKey fromNamespaceKey(String name) {
       return new NamespacedKey(PLUGIN, name);
+   }
+
+   /**
+    * 玩家动态 float 数据，不写入玩家 PDC，退出重进后仍然保留。
+    */
+   public static Map<String,Float> playerFloatData(UUID uuid){
+      return player_float_data.computeIfAbsent(uuid, k -> new HashMap<>());
+   }
+
+   public static float getPlayerFloat(UUID uuid,String key){
+      Map<String,Float> data = playerFloatData(uuid);
+      Float value = data.get(key);
+      if(value == null){
+         value = switch (key){
+            case "lv" -> 5f;
+            case "la" -> 50f;
+            default -> 0f;
+         };
+         data.put(key, value);
+      }
+      return value;
+   }
+
+   public static void setPlayerFloat(UUID uuid,String key,float value){
+      playerFloatData(uuid).put(key, value);
    }
 
 
@@ -542,7 +582,7 @@ public class ToolClass {
                   }
                   if(s== ACTIVITY_ROOM_1_1){
                      Random random = new Random();
-                     SpawnActivity(1,world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
+                     SpawnActivity(random.nextInt(2),world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
                   }
 
                   if (s == SHOP_ROOM_1_1) {
@@ -591,7 +631,7 @@ public class ToolClass {
                   }
                   if(s== ACTIVITY_ROOM_1_1){
                      Random random = new Random();
-                     SpawnActivity(1,world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
+                     SpawnActivity(random.nextInt(2),world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
                   }
 
                   if (s == SHOP_ROOM_1_1) {
@@ -640,7 +680,7 @@ public class ToolClass {
                   }
                   if(s== ACTIVITY_ROOM_1_1){
                      Random random = new Random();
-                     SpawnActivity(1,world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
+                     SpawnActivity(random.nextInt(2),world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
                   }
 
                   if (s == SHOP_ROOM_1_1) {
@@ -687,7 +727,7 @@ public class ToolClass {
 
                      if(s== ACTIVITY_ROOM_1_1){
                         Random random = new Random();
-                        SpawnActivity(1,world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
+                        SpawnActivity(random.nextInt(2),world,new Location(world,location.x()+14,location.y()+1,location.z()+14));
                      }
                      if (s == SHOP_ROOM_1_1) {
                         ++shop;
@@ -1229,7 +1269,7 @@ public class ToolClass {
 
    public static void SpawnActivity(int id, World world, Location loc) {
       switch (id) {
-         case 1:
+         case 0:
             ArmorStand armorStand = world.spawn(loc, ArmorStand.class);
             EntityEquipment equipment = armorStand.getEquipment();
             equipment.setHelmet(fromEquipment(Material.WITHER_SKELETON_SKULL).getFirst());
@@ -1249,9 +1289,12 @@ public class ToolClass {
             do {
                uuid = UUID.randomUUID();
             } while(requestMap.containsKey(uuid));
-
             pdc.set(fromNamespaceKey("uuid"), PersistentDataType.STRING, uuid.toString());
             requestMap.put(uuid, new LiveShop());
+            break;
+         case 1:
+            Location l = new Location(loc.getWorld(),loc.getBlockX()-4,100,loc.getBlockZ()-4);
+            ANCIENT_POOL.place(l,true,StructureRotation.NONE,Mirror.NONE,0,1,new Random());
             break;
          default:
             break;
@@ -1275,9 +1318,15 @@ public class ToolClass {
       Iron = new ItemStack(Material.IRON_INGOT);
       Gold = new ItemStack(Material.GOLD_INGOT);
       Compass = new ItemStack(Material.COMPASS);
+      ExplodeExpress = new ItemStack(Material.GUNPOWDER);
+      Goal = new ItemStack(Material.TARGET);
+      HealthContainer = new ItemStack(Material.FIREWORK_STAR);
+      SuperManPotion = new ItemStack(Material.POTION);
+      SuperManPotionPro = new ItemStack(Material.POTION);
       itemPool = new HashMap<>();
       Shoot_timer = new HashMap<>();
       typeMap = new HashMap<>();
+      playerMap = new HashMap<>();
       entity_defence = new HashMap<>();
       entity_type = new HashMap<>();
       element_type = new HashMap<>();
@@ -1289,6 +1338,7 @@ public class ToolClass {
       grass_sword_skill_tick = new HashMap<>();
       gunServiceMap = new HashMap<>();
       rockDefenceTickTimerMap = new HashMap<>();
+      player_float_data = new HashMap<>();
       skillServiceMap = new HashMap<>();
       lightningGunServiceMap = new HashMap<>();
       fireBookSkillTick = new HashMap<>();
@@ -1296,6 +1346,7 @@ public class ToolClass {
       IceBowSkillTick = new HashMap<>();
       max_item_id = 0;
       game_players = new ArrayList<>();
+      super_man_ticks = new HashMap<>();
       CROSS_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("cross_north"));
       CROSS_ROOM_1_2 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("cross_east"));
       ACTIVITY_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("activite_room"));
@@ -1305,6 +1356,8 @@ public class ToolClass {
       CENTER_ROOM_1_2 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("center_room1"));
       SHOP_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("shop_room"));
       Box_ROOM_1_1 = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("box_room"));
+      ANCIENT_POOL = Bukkit.getStructureManager().loadStructure(NamespacedKey.minecraft("ancient_pool"));
+
       storageManager = new StorageManager("map.dat");
       EntityRoomData = new CornerData();
       sword_tick = new HashMap<>();
@@ -1551,6 +1604,72 @@ public class ToolClass {
 
       Compass.setItemMeta(meta);
 
+      meta = ExplodeExpress.getItemMeta();
+      assert meta != null;
+      meta.addEnchant(Enchantment.SHARPNESS,1,true);
+      pdc = meta.getPersistentDataContainer();
+      pdc.set(fromNamespaceKey("explode_express"),PersistentDataType.BOOLEAN,true);
+      name = Component.text("烈性火药",NamedTextColor.LIGHT_PURPLE);
+      meta.displayName(name);
+      meta.lore(List.of(Component.text("被动道具，在背包时，触发超载反应后的3秒内，暴击伤害提高14.5%，时间上可以叠加，如果背包中有多个，则只能触发一个",NamedTextColor.YELLOW)));
+
+      ExplodeExpress.setItemMeta(meta);
+
+      meta = Goal.getItemMeta();
+      assert meta != null;
+      meta.addEnchant(Enchantment.SHARPNESS,1,true);
+      pdc = meta.getPersistentDataContainer();
+      pdc.set(fromNamespaceKey("goal"),PersistentDataType.BOOLEAN,true);
+      name = Component.text("标靶",NamedTextColor.BLUE);
+      meta.displayName(name);
+      meta.lore(List.of(Component.text("精准，是狩猎的根基",NamedTextColor.YELLOW),Component.text("被动道具，在背包时，暴击率增加7.6%，如果背包内有多个，则最多只能触发一个",NamedTextColor.YELLOW)));
+
+      Goal.setItemMeta(meta);
+
+      meta = HealthContainer.getItemMeta();
+      assert meta != null;
+      meta.addEnchant(Enchantment.SHARPNESS,1,true);
+      pdc = meta.getPersistentDataContainer();
+      pdc.set(fromNamespaceKey("health_container"),PersistentDataType.BOOLEAN,true);
+      name = Component.text("心之容器",NamedTextColor.GOLD);
+      meta.displayName(name);
+      meta.lore(List.of(Component.text("弱者不需要被怜悯，他们只配成为支持我继续战斗的柴薪",NamedTextColor.YELLOW)
+              ,Component.text("每主动击杀一个敌人时，心之容器都有40%的概率获得充能，大小为死亡的敌人最后受到的伤害的10%",NamedTextColor.YELLOW),
+              Component.text("当充能达到100%时，心之容器会获得1点生命点，并重置充能且保留溢出的充能进度",NamedTextColor.YELLOW),
+              Component.text("当心之容器的生命点大于0时，右键可消耗1生命点恢复2HP",NamedTextColor.YELLOW),
+              Component.text("当前生命点：",NamedTextColor.YELLOW).append(Component.text("0/10",NamedTextColor.GREEN)),
+              Component.text("当前充能进度：",NamedTextColor.YELLOW).append(Component.text("0%",NamedTextColor.GREEN))));
+      meta.getPersistentDataContainer().set(fromNamespaceKey("health"),PersistentDataType.INTEGER,0);
+      meta.getPersistentDataContainer().set(fromNamespaceKey("process"),PersistentDataType.INTEGER,0);
+      HealthContainer.setItemMeta(meta);
+
+      meta = SuperManPotion.getItemMeta();
+      PotionMeta m = (PotionMeta) meta;
+      assert m != null;
+      m.addEnchant(Enchantment.SHARPNESS,1,true);
+      m.setColor(Color.fromRGB(100,0,0));
+      pdc = m.getPersistentDataContainer();
+      pdc.set(fromNamespaceKey("superman_potion"),PersistentDataType.BOOLEAN,true);
+      name = Component.text("超人药剂",NamedTextColor.LIGHT_PURPLE);
+      m.displayName(name);
+      m.lore(List.of(Component.text("一家生物公司为了提高士兵战斗力而研发的初代药剂，后因为有强烈副作用而停产",NamedTextColor.YELLOW)
+              ,Component.text("饮下后的60秒内，你将获得48.5%的暴击率加成，60%的暴击伤害加成，450的伤害抗性加成",NamedTextColor.YELLOW),
+              Component.text("但是60秒后你将获得完全相反的效果，持续15秒",NamedTextColor.YELLOW)));
+      SuperManPotion.setItemMeta(m);
+
+      meta = SuperManPotionPro.getItemMeta();
+      m = (PotionMeta) meta;
+      assert m != null;
+      m.addEnchant(Enchantment.SHARPNESS,1,true);
+      m.setColor(Color.ORANGE);
+      pdc = m.getPersistentDataContainer();
+      pdc.set(fromNamespaceKey("superman_potion_pro"),PersistentDataType.BOOLEAN,true);
+      name = Component.text("超人药剂（改良版）",NamedTextColor.GOLD);
+      m.displayName(name);
+      m.lore(List.of(Component.text("改良后的超人药剂，效果更强且没有副作用，已经被大规模使用",NamedTextColor.YELLOW)
+              ,Component.text("饮下后的60秒内，你将获得56.6%的暴击率加成，72.5%的暴击伤害加成，600的伤害抗性加成",NamedTextColor.YELLOW)));
+      SuperManPotionPro.setItemMeta(m);
+
       itemPool.put(DefaultGun, 0.9F);
       itemPool.put(ElementStone, 0.65F);
       itemPool.put(WindSword, 0.015F);
@@ -1562,6 +1681,11 @@ public class ToolClass {
       itemPool.put(IceBow, 0.015F);
       itemPool.put(PhysicSword, 0.015F);
       itemPool.put(GodSpawner, 0.015F);
+      itemPool.put(ExplodeExpress,0.065f);
+      itemPool.put(Goal,0.65f);
+      itemPool.put(HealthContainer,0.015f);
+      itemPool.put(SuperManPotion,0.065f);
+      itemPool.put(SuperManPotionPro,0.015f);
       ShopData.put(DefaultGun, new CostData(25, 0));
       ShopData.put(WindSword, new CostData(36, 20));
       ShopData.put(StoneBook, new CostData(36, 20));
@@ -1573,10 +1697,73 @@ public class ToolClass {
       ShopData.put(PhysicSword, new CostData(36, 20));
       ShopData.put(GodSpawner, new CostData(24, 15));
       ShopData.put(Gold, new CostData(20, 0));
+      ShopData.put(ExplodeExpress,new CostData(25,5));
+      ShopData.put(Goal,new CostData(15,2));
+      ShopData.put(SuperManPotion,new CostData(25,5));
+      ShopData.put(HealthContainer,new CostData(24,15));
+      ShopData.put(SuperManPotionPro,new CostData(24,15));
    }
 
 
 
+
+   /**
+    * 清除世界中的所有非玩家实体，包括未加载区块里的实体。
+    * 直接改写 entities region 的 NBT，不会为了清怪而加载区块。
+    * 自行调用：ToolClass.clearNonPlayerEntities(world)
+    */
+   public static void clearNonPlayerEntities(World world){
+      for(Entity entity : world.getEntities()){
+         if(!(entity instanceof Player)){
+            entity.remove();
+         }
+      }
+
+      Path entityFolder = world.getWorldFolder().toPath().resolve("entities");
+      if(!Files.isDirectory(entityFolder)){
+         Path overworldFolder = world.getWorldFolder().toPath().resolve("dimensions/minecraft/overworld/entities");
+         if(Files.isDirectory(overworldFolder)){
+            entityFolder = overworldFolder;
+         }
+      }
+      if(!Files.isDirectory(entityFolder)){
+         return;
+      }
+
+      ServerLevel serverLevel = ((CraftWorld) world).getHandle();
+      RegionDataController controller = serverLevel.moonrise$getEntityChunkDataController();
+      Pattern regionPattern = Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
+
+      try(java.util.stream.Stream<Path> files = Files.list(entityFolder)){
+         for(Path file : files.toList()){
+            Matcher matcher = regionPattern.matcher(file.getFileName().toString());
+            if(!matcher.matches()){
+               continue;
+            }
+            int regionX = Integer.parseInt(matcher.group(1));
+            int regionZ = Integer.parseInt(matcher.group(2));
+            for(int chunkX = 0; chunkX < 32; chunkX++){
+               for(int chunkZ = 0; chunkZ < 32; chunkZ++){
+                  int x = regionX * 32 + chunkX;
+                  int z = regionZ * 32 + chunkZ;
+                  try{
+                     RegionDataController.ReadData read = controller.readData(x, z);
+                     CompoundTag tag = controller.finishRead(x, z, read);
+                     if(tag == null || tag.remove("Entities") == null){
+                        continue;
+                     }
+                     RegionDataController.WriteData write = controller.startWrite(x, z, tag);
+                     controller.finishWrite(x, z, write);
+                  }catch(Exception ignored){
+                     // 单个区块损坏/不存在时继续处理其它区块
+                  }
+               }
+            }
+         }
+      }catch(Exception e){
+         e.printStackTrace();
+      }
+   }
 
    public static void Start(){
       ToolClass.gaming = true;
@@ -1585,12 +1772,7 @@ public class ToolClass {
       un_relief_players = new HashMap<>();
       World world = Bukkit.getWorld("world");
       if(world != null){
-         CraftWorld craftWorld = (CraftWorld) world;
-         for(net.minecraft.world.entity.Entity entity : FeatureHooks.getAllEntities(craftWorld.getHandle())){
-            if(!entity.getType().equals(EntityTypes.PLAYER)){
-               entity.remove(net.minecraft.world.entity.Entity.RemovalReason.KILLED);
-            }
-         }
+         clearNonPlayerEntities(world);
       }
 
       List<Player> players = new ArrayList<>();
@@ -1613,12 +1795,7 @@ public class ToolClass {
       ToolClass.round++;
       World world = Bukkit.getWorld("world");
       if(world != null){
-         CraftWorld craftWorld = (CraftWorld) world;
-         for(net.minecraft.world.entity.Entity entity : FeatureHooks.getAllEntities(craftWorld.getHandle())){
-            if(!entity.getType().equals(EntityTypes.PLAYER)){
-               entity.remove(net.minecraft.world.entity.Entity.RemovalReason.KILLED);
-            }
-         }
+         clearNonPlayerEntities(world);
       }
       List<Player> players = new ArrayList<>();
       for(UUID uuid : game_players) {
@@ -1634,9 +1811,9 @@ public class ToolClass {
       }
    }
    public static void Damage(LivingEntity goal,Player source,int damage,DamageType t) {
-      PersistentDataContainer pdc = source.getPersistentDataContainer();
-      Float lv = pdc.get(fromNamespaceKey("lv"), PersistentDataType.FLOAT);
-      Float la = pdc.get(fromNamespaceKey("la"), PersistentDataType.FLOAT);
+      Float lv = getPlayerFloat(source.getUniqueId(), "lv");
+      Float la = getPlayerFloat(source.getUniqueId(), "la");
+      playerMap.put(goal.getUniqueId(),source.getUniqueId());
       if (lv != null && la != null) {
          double r = Math.random();
          if (r < lv / 100f) {
@@ -1649,6 +1826,7 @@ public class ToolClass {
             goal.damage(damage);
          }
       }
+
    }
    public static void reset(Player player){
       for (Attribute attribute : Registry.ATTRIBUTE) {
@@ -1666,8 +1844,9 @@ public class ToolClass {
       if (speed != null) {
          speed.setBaseValue(0.1);
       }
+      player.clearActivePotionEffects();
       defence.put(player.getUniqueId(),0);
-      player.getPersistentDataContainer().set(fromNamespaceKey("lv"),PersistentDataType.FLOAT,5f);
-      player.getPersistentDataContainer().set(fromNamespaceKey("la"),PersistentDataType.FLOAT,50f);
+      setPlayerFloat(player.getUniqueId(),"lv",5f);
+      setPlayerFloat(player.getUniqueId(),"la",50f);
    }
 }

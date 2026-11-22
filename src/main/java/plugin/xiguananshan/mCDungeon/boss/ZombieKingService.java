@@ -245,7 +245,6 @@ public class ZombieKingService extends BossService {
             );
             double blockDistance = blockHit == null ? Double.MAX_VALUE : blockHit.getHitPosition().distance(rayOrigin);
 
-            // 沿冲撞线检测玩家，避免隔着墙用范围检测误伤
             RayTraceResult playerHit = entity.getWorld().rayTraceEntities(
                     rayStart,
                     direction,

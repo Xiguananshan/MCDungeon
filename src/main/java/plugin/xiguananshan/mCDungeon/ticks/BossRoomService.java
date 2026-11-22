@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.bukkit.*;
+import org.bukkit.block.TileState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -38,7 +39,6 @@ public class BossRoomService extends BukkitRunnable {
                             ));
                     p.showTitle(title);
                     p.playSound(p, Sound.BLOCK_NOTE_BLOCK_HARP,3,3);
-
                     EntityRoomCheckService.setAllDoors(Material.AIR,p.getWorld());
                     for(CornerData.Corner corner : ToolClass.LiveCrossRoom.corners){
                         for(int x = corner.minx;x<=corner.maxx;x++){
@@ -53,7 +53,7 @@ public class BossRoomService extends BukkitRunnable {
                     for(int X = ToolClass.BossDoor.minx;X<=ToolClass.BossDoor.maxx;X++){
                         for(int Y = ToolClass.BossDoor.miny;Y<=ToolClass.BossDoor.maxy;Y++){
                             for(int Z = ToolClass.BossDoor.minz;Z <= ToolClass.BossDoor.maxz;Z++){
-                                p.getWorld().getBlockAt(X,Y,Z).setType(Material.DARK_OAK_FENCE,true);
+                                p.getWorld().getBlockAt(X,Y,Z).setType(Material.AIR,true);
                             }
                         }
                     }

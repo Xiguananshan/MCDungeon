@@ -16,6 +16,8 @@ commands:
     description: Open the settings panel of game.
   start:
     description: Start the game.
+  loot:
+    description: A loot command for command_block.
 
 
 

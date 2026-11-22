@@ -3,7 +3,6 @@ package plugin.xiguananshan.mCDungeon;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import plugin.xiguananshan.mCDungeon.command.*;
@@ -28,12 +27,14 @@ public final class MCDungeon extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerRightClickEntityEventListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerDiedEventListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerHealEventListener(),this);
+        getServer().getPluginManager().registerEvents(new PlayerConsumeEventListener(),this);
         getCommand("test").setExecutor(new TestCommand());
         getCommand("test_gun").setExecutor(new TestGunCommand());
         getCommand("generate").setExecutor(new GenerateTestCommand());
         getCommand("chest").setExecutor(new TestChestCommand());
         getCommand("settings").setExecutor(new SettingsCommand());
         getCommand("start").setExecutor(new StartCommand());
+        getCommand("loot").setExecutor(new LootCommand());
         new ElementTypeTimer().runTaskTimer(this,0,1);
         new FreezeTicksTimer().runTaskTimer(this,0,1);
         new GrassTickTimer().runTaskTimer(this,0,1);
@@ -48,10 +49,12 @@ public final class MCDungeon extends JavaPlugin {
         new PlayerGameService().runTaskTimer(this,0,1);
         new SpiderTargetService().runTaskTimer(this,0,10);
         new ScoreBoardInfoService().runTaskTimer(this,0,1);
-        new PDCModifierService().runTaskTimer(this,0,1);
+        new DataModifierService().runTaskTimer(this,0,1);
         new CompassService().runTaskTimer(this,0,1);
+        new CommandBlockSpawnEntityService().runTaskTimer(this,0,1);
+        new DefenceModifyService().runTaskTimer(this,0,1);
+        new SuperManTickService().runTaskTimer(this,0,1);
         saveDefaultConfig();
-        // Plugin startup logic
     }
 
     @Override

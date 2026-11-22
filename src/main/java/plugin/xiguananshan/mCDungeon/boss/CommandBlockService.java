@@ -5,13 +5,12 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LightningStrike;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -52,13 +51,14 @@ public class CommandBlockService extends BossService {
             in_skill = true;
             Random random = new Random();
             SkillType type = SkillType.values()[random.nextInt(SkillType.values().length)];
-            /*
+
             switch (type){
                 case KILL -> new KillService(this).runTaskTimer(ToolClass.PLUGIN,0,1);
                 case LIGHTNING -> new LightningService(this).runTaskTimer(ToolClass.PLUGIN,0,1);
+                case SPAWN -> new SpawnService(this).runTaskTimer(ToolClass.PLUGIN,0,1);
+                case SHOOT -> new ShootService(this).runTaskTimer(ToolClass.PLUGIN,0,1);
             }
-            */
-            new LightningService(this).runTaskTimer(ToolClass.PLUGIN,0,1);
+
 
             next_skill = null;
         }
@@ -224,6 +224,83 @@ public class CommandBlockService extends BossService {
             }
         }
 
+    }
+    static class ShootService extends BukkitRunnable{
+        private final CommandBlockService service;
+        public ShootService(CommandBlockService service){
+            this.service = service;
+        }
+        @Override
+        public void run() {
+            List<Class<? extends Projectile>> projectile_clazz = List.of(SmallFireball.class, Arrow.class, WindCharge.class, WitherSkull.class);
+            Random random = new Random();
+            service.getEntity().launchProjectile(projectile_clazz.get(random.nextInt(projectile_clazz.size())),service.getEntity().getEyeLocation().getDirection().normalize());
+            service.in_skill = false;
+            cancel();
+        }
+    }
+    static class SpawnService extends BukkitRunnable{
+        private final CommandBlockService service;
+        private int ticks;
+        public SpawnService(CommandBlockService service){
+            this.service = service;
+            this.ticks = 0;
+        }
+        @Override
+        public void run() {
+            World world = Bukkit.getWorld("world");
+            assert world != null;
+            if(ticks == 0){
+                service.getEntity().setAI(false);
+
+            }
+            if(ticks%20 == 0){
+                ToolClass.fillCubeWithParticles(service.getEntity().getWorld(), service.getEntity().getLocation(),2,25,Particle.ANGRY_VILLAGER);
+            }
+            if(ticks>=60){
+                for(int i = 0;i<4;i++){
+                    Mob mob = ToolClass.SummonEntity(world,service.getEntity().getLocation(),ToolClass.fromEquipment(
+                            Material.REPEATING_COMMAND_BLOCK,
+                            Material.LEATHER_CHESTPLATE,
+                            Material.LEATHER_LEGGINGS,
+                            Material.LEATHER_BOOTS,
+                            Material.DIAMOND_SWORD
+                    ),true,3000, Zombie.class);
+                    mob.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("CommandBlockSpawn"),PersistentDataType.STRING,"Repeat");
+                    mob.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,Integer.MAX_VALUE,0,false,false));
+                }
+                for(int i = 0;i<2;i++){
+                    Mob mob = ToolClass.SummonEntity(world,service.getEntity().getLocation(),ToolClass.fromEquipment(
+                            Material.CHAIN_COMMAND_BLOCK,
+                            Material.LEATHER_CHESTPLATE,
+                            Material.LEATHER_LEGGINGS,
+                            Material.LEATHER_BOOTS,
+                            Material.DIAMOND_SWORD
+                    ),true,1500, Skeleton.class);
+                    mob.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("CommandBlockSpawn"),PersistentDataType.STRING,"Chain");
+                    Objects.requireNonNull(mob.getAttribute(Attribute.MOVEMENT_SPEED)).setBaseValue(0.4f);
+                    mob.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,Integer.MAX_VALUE,0,false,false));
+                }
+                for(int i = 0;i<2;i++){
+                    Mob mob = ToolClass.SummonEntity(world,service.getEntity().getLocation(),ToolClass.fromEquipment(
+                            Material.COMMAND_BLOCK,
+                            Material.LEATHER_CHESTPLATE,
+                            Material.LEATHER_LEGGINGS,
+                            Material.LEATHER_BOOTS,
+                            Material.IRON_SWORD
+                    ),true,1500, Skeleton.class);
+                    mob.getPersistentDataContainer().set(ToolClass.fromNamespaceKey("CommandBlockSpawn"),PersistentDataType.STRING,"Command");
+                    Objects.requireNonNull(mob.getAttribute(Attribute.MOVEMENT_SPEED)).setBaseValue(0.35f);
+                    mob.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,Integer.MAX_VALUE,0,false,false));
+
+                }
+                service.getEntity().setAI(true);
+                service.in_skill = false;
+                cancel();
+                return;
+            }
+            ticks++;
+        }
     }
     static class LightningService extends BukkitRunnable{
         private final CommandBlockService service;
